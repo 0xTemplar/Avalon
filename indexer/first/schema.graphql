@@ -1,117 +1,307 @@
-type ParticipantJoined @entity(immutable: true) {
+# ==========================================
+# CORE ENTITIES
+# ==========================================
+
+type User @entity(immutable: false) {
+  id: Bytes! # user address
+  username: String
+  profileCreatedAt: BigInt
+  profileUpdatedAt: BigInt
+  reputation: BigInt!
+  skills: [String!]!
+
+  # Relationships
+  createdQuests: [Quest!]! @derivedFrom(field: "creator")
+  questParticipations: [QuestParticipant!]! @derivedFrom(field: "user")
+  submissions: [Submission!]! @derivedFrom(field: "submitter")
+  rewards: [Reward!]! @derivedFrom(field: "recipient")
+  teamMemberships: [TeamMember!]! @derivedFrom(field: "user")
+  achievementsEarned: [UserAchievement!]! @derivedFrom(field: "user")
+
+  # Stats
+  totalQuestsCreated: BigInt!
+  totalQuestsCompleted: BigInt!
+  totalRewardsEarned: BigInt!
+  totalSubmissions: BigInt!
+}
+
+type Quest @entity(immutable: false) {
+  id: Bytes! # questId as Bytes
+  questId: BigInt! # original questId as BigInt
+  creator: User!
+  title: String!
+  description: String
+  bountyAmount: BigInt!
+  bountyToken: Bytes!
+  status: QuestStatus!
+
+  # Timestamps
+  createdAt: BigInt!
+  updatedAt: BigInt
+  completedAt: BigInt
+  cancelledAt: BigInt
+
+  # Relationships
+  participants: [QuestParticipant!]! @derivedFrom(field: "quest")
+  submissions: [Submission!]! @derivedFrom(field: "quest")
+  rewards: [Reward!]! @derivedFrom(field: "quest")
+  teams: [Team!]! @derivedFrom(field: "quest")
+  collaborationRequests: [CollaborationRequest!]! @derivedFrom(field: "quest")
+
+  # Computed fields
+  participantCount: BigInt!
+  submissionCount: BigInt!
+  isCompleted: Boolean!
+  isCancelled: Boolean!
+  winners: [Bytes!]!
+
+  # Transaction info
+  creationTxHash: Bytes!
+  creationBlockNumber: BigInt!
+}
+
+enum QuestStatus {
+  CREATED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+type QuestParticipant @entity(immutable: false) {
+  id: Bytes! # questId + participant address
+  quest: Quest!
+  user: User!
+  joinedAt: BigInt!
+  leftAt: BigInt
+  isActive: Boolean!
+
+  # Transaction info
+  joinTxHash: Bytes!
+  leftTxHash: Bytes
+}
+
+# ==========================================
+# SUBMISSION ENTITIES
+# ==========================================
+
+type Submission @entity(immutable: false) {
+  id: Bytes! # submissionId as Bytes
+  submissionId: BigInt! # original submissionId as BigInt
+  quest: Quest!
+  submitter: User!
+  isTeamSubmission: Boolean!
+  team: Team
+
+  # Status and scoring
+  status: SubmissionStatus!
+  score: BigInt
+  isApproved: Boolean
+  isWinner: Boolean!
+
+  # Engagement
+  likes: [SubmissionLike!]! @derivedFrom(field: "submission")
+  comments: [SubmissionComment!]! @derivedFrom(field: "submission")
+  reviews: [SubmissionReview!]! @derivedFrom(field: "submission")
+
+  # Timestamps
+  createdAt: BigInt!
+  updatedAt: BigInt
+  reviewedAt: BigInt
+
+  # Stats
+  likeCount: BigInt!
+  commentCount: BigInt!
+
+  # Transaction info
+  creationTxHash: Bytes!
+  creationBlockNumber: BigInt!
+}
+
+enum SubmissionStatus {
+  CREATED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  WINNER
+}
+
+type SubmissionLike @entity(immutable: true) {
+  id: Bytes! # submissionId + user address
+  submission: Submission!
+  user: User!
+  likedAt: BigInt!
+  txHash: Bytes!
+}
+
+type SubmissionComment @entity(immutable: true) {
+  id: Bytes! # submissionId + commenter + timestamp
+  submission: Submission!
+  commenter: User!
+  commentedAt: BigInt!
+  txHash: Bytes!
+}
+
+type SubmissionReview @entity(immutable: true) {
+  id: Bytes! # submissionId + reviewer + timestamp
+  submission: Submission!
+  reviewer: User!
+  score: BigInt!
+  approved: Boolean!
+  reviewedAt: BigInt!
+  txHash: Bytes!
+}
+
+# ==========================================
+# REWARD ENTITIES
+# ==========================================
+
+type Reward @entity(immutable: true) {
+  id: Bytes! # rewardId as Bytes
+  rewardId: BigInt! # original rewardId as BigInt
+  quest: Quest!
+  recipient: User!
+  amount: BigInt!
+  token: Bytes!
+  rewardType: RewardType!
+
+  # Timestamps
+  distributedAt: BigInt!
+
+  # Transaction info
+  txHash: Bytes!
+  blockNumber: BigInt!
+}
+
+enum RewardType {
+  WINNER_REWARD
+  PARTICIPATION_REWARD
+  BONUS_REWARD
+  PLATFORM_FEE
+}
+
+# ==========================================
+# COLLABORATION ENTITIES
+# ==========================================
+
+type Team @entity(immutable: false) {
+  id: Bytes! # teamId as Bytes
+  teamId: BigInt! # original teamId as BigInt
+  quest: Quest!
+  leader: User!
+  name: String!
+
+  # Status
+  isActive: Boolean!
+
+  # Members
+  members: [TeamMember!]! @derivedFrom(field: "team")
+  invites: [TeamInvite!]! @derivedFrom(field: "team")
+
+  # Timestamps
+  createdAt: BigInt!
+  disbandedAt: BigInt
+
+  # Stats
+  memberCount: BigInt!
+
+  # Transaction info
+  creationTxHash: Bytes!
+}
+
+type TeamMember @entity(immutable: false) {
+  id: Bytes! # teamId + user address
+  team: Team!
+  user: User!
+  joinedAt: BigInt!
+  removedAt: BigInt
+  isActive: Boolean!
+
+  # Transaction info
+  joinTxHash: Bytes!
+  removeTxHash: Bytes
+}
+
+type TeamInvite @entity(immutable: false) {
+  id: Bytes! # teamId + invitee address
+  team: Team!
+  invitee: User!
+  inviter: User!
+  status: InviteStatus!
+
+  # Timestamps
+  sentAt: BigInt!
+  respondedAt: BigInt
+
+  # Transaction info
+  sentTxHash: Bytes!
+  responseTxHash: Bytes
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+type CollaborationRequest @entity(immutable: true) {
+  id: Bytes! # requestId as Bytes
+  requestId: BigInt! # original requestId as BigInt
+  quest: Quest!
+  requester: User!
+  createdAt: BigInt!
+  txHash: Bytes!
+}
+
+# ==========================================
+# USER PROFILE ENTITIES
+# ==========================================
+
+type UserAchievement @entity(immutable: true) {
+  id: Bytes! # user + achievementId
+  user: User!
+  achievementId: BigInt!
+  earnedAt: BigInt!
+  txHash: Bytes!
+}
+
+# ==========================================
+# PLATFORM ENTITIES
+# ==========================================
+
+type PlatformStats @entity(immutable: false) {
+  id: Bytes! # "PLATFORM_STATS"
+  totalUsers: BigInt!
+  totalQuests: BigInt!
+  totalSubmissions: BigInt!
+  totalRewardsDistributed: BigInt!
+  totalValueLocked: BigInt!
+
+  # Platform settings
+  platformFeePercentage: BigInt!
+  platformFeeRecipient: Bytes!
+}
+
+# ==========================================
+# RAW EVENT ENTITIES (for debugging/auditing)
+# ==========================================
+
+# Keep minimal raw events for debugging and administrative purposes
+type RoleEvent @entity(immutable: true) {
   id: Bytes!
-  questId: BigInt! # uint256
-  participant: Bytes! # address
+  contract: String! # Which contract emitted this
+  role: Bytes!
+  account: Bytes!
+  eventType: String! # "GRANTED", "REVOKED", "ADMIN_CHANGED"
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
 
-type ParticipantLeft @entity(immutable: true) {
+type PauseEvent @entity(immutable: true) {
   id: Bytes!
-  questId: BigInt! # uint256
-  participant: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type Paused @entity(immutable: true) {
-  id: Bytes!
-  account: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type PlatformFeeRecipientUpdated @entity(immutable: true) {
-  id: Bytes!
-  newRecipient: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type PlatformFeeUpdated @entity(immutable: true) {
-  id: Bytes!
-  newFeePercentage: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type QuestCancelled @entity(immutable: true) {
-  id: Bytes!
-  questId: BigInt! # uint256
-  reason: String! # string
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type QuestCompleted @entity(immutable: true) {
-  id: Bytes!
-  questId: BigInt! # uint256
-  winners: [Bytes!]! # address[]
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type QuestCreated @entity(immutable: true) {
-  id: Bytes!
-  questId: BigInt! # uint256
-  creator: Bytes! # address
-  title: String! # string
-  bountyAmount: BigInt! # uint256
-  bountyToken: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type QuestUpdated @entity(immutable: true) {
-  id: Bytes!
-  questId: BigInt! # uint256
-  status: Int! # uint8
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type RoleAdminChanged @entity(immutable: true) {
-  id: Bytes!
-  role: Bytes! # bytes32
-  previousAdminRole: Bytes! # bytes32
-  newAdminRole: Bytes! # bytes32
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type RoleGranted @entity(immutable: true) {
-  id: Bytes!
-  role: Bytes! # bytes32
-  account: Bytes! # address
-  sender: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type RoleRevoked @entity(immutable: true) {
-  id: Bytes!
-  role: Bytes! # bytes32
-  account: Bytes! # address
-  sender: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type Unpaused @entity(immutable: true) {
-  id: Bytes!
-  account: Bytes! # address
+  contract: String! # Which contract was paused/unpaused
+  account: Bytes!
+  isPaused: Boolean!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!

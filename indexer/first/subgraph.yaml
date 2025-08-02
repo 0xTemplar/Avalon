@@ -60,3 +60,201 @@ dataSources:
         - event: Unpaused(address)
           handler: handleUnpaused
       file: ./src/quest-board.ts
+  - kind: ethereum
+    name: SubmissionManager
+    network: etherlink-testnet
+    source:
+      address: "0x09f9D548467709c7DD597A7fA9dAEac1ff594071"
+      abi: SubmissionManager
+      startBlock: 20867303
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - SubmissionManagerPaused
+        - SubmissionManagerRoleAdminChanged
+        - SubmissionManagerRoleGranted
+        - SubmissionManagerRoleRevoked
+        - SubmissionCommented
+        - SubmissionCreated
+        - SubmissionLiked
+        - SubmissionReviewed
+        - SubmissionUpdated
+        - SubmissionManagerUnpaused
+        - WinnerSelected
+      abis:
+        - name: SubmissionManager
+          file: ./abis/SubmissionManager.json
+      eventHandlers:
+        - event: Paused(address)
+          handler: handlePaused
+        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+          handler: handleRoleAdminChanged
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+        - event: SubmissionCommented(indexed uint256,indexed address)
+          handler: handleSubmissionCommented
+        - event: SubmissionCreated(indexed uint256,indexed uint256,indexed address,bool)
+          handler: handleSubmissionCreated
+        - event: SubmissionLiked(indexed uint256,indexed address)
+          handler: handleSubmissionLiked
+        - event: SubmissionReviewed(indexed uint256,indexed address,uint256,bool)
+          handler: handleSubmissionReviewed
+        - event: SubmissionUpdated(indexed uint256,uint8)
+          handler: handleSubmissionUpdated
+        - event: Unpaused(address)
+          handler: handleUnpaused
+        - event: WinnerSelected(indexed uint256,indexed uint256)
+          handler: handleWinnerSelected
+      file: ./src/submission-manager.ts
+  - kind: ethereum
+    name: RewardManager
+    network: etherlink-testnet
+    source:
+      address: "0xE71949E7C672dFd4Daf0e14b05b008EA91f9A0DF"
+      abi: RewardManager
+      startBlock: 20867310
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - BountyEscrowed
+        - BountyRefunded
+        - EmergencyWithdraw
+        - RewardManagerPaused
+        - PaymentSplitUpdated
+        - RewardDistributed
+        - RewardManagerRoleAdminChanged
+        - RewardManagerRoleGranted
+        - RewardManagerRoleRevoked
+        - RewardManagerUnpaused
+      abis:
+        - name: RewardManager
+          file: ./abis/RewardManager.json
+      eventHandlers:
+        - event: BountyEscrowed(indexed uint256,indexed address,uint256,address)
+          handler: handleBountyEscrowed
+        - event: BountyRefunded(indexed uint256,indexed address,uint256)
+          handler: handleBountyRefunded
+        - event: EmergencyWithdraw(indexed address,uint256,indexed address)
+          handler: handleEmergencyWithdraw
+        - event: Paused(address)
+          handler: handlePaused
+        - event: PaymentSplitUpdated(indexed uint256,(address,uint256,string)[])
+          handler: handlePaymentSplitUpdated
+        - event: RewardDistributed(indexed uint256,indexed uint256,indexed
+            address,uint256,address,uint8)
+          handler: handleRewardDistributed
+        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+          handler: handleRoleAdminChanged
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+        - event: Unpaused(address)
+          handler: handleUnpaused
+      file: ./src/reward-manager.ts
+  - kind: ethereum
+    name: UserProfile
+    network: etherlink-testnet
+    source:
+      address: "0x6ACF9CF21e950A157F4153700F33C26e7602DE8F"
+      abi: UserProfile
+      startBlock: 20867315
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - AchievementEarned
+        - ProfileCreated
+        - ProfileUpdated
+        - ReputationUpdated
+        - UserProfileRoleAdminChanged
+        - UserProfileRoleGranted
+        - UserProfileRoleRevoked
+        - SkillAdded
+        - SkillRemoved
+      abis:
+        - name: UserProfile
+          file: ./abis/UserProfile.json
+      eventHandlers:
+        - event: AchievementEarned(indexed address,indexed uint256)
+          handler: handleAchievementEarned
+        - event: ProfileCreated(indexed address,string)
+          handler: handleProfileCreated
+        - event: ProfileUpdated(indexed address)
+          handler: handleProfileUpdated
+        - event: ReputationUpdated(indexed address,uint256,string)
+          handler: handleReputationUpdated
+        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+          handler: handleRoleAdminChanged
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+        - event: SkillAdded(indexed address,string)
+          handler: handleSkillAdded
+        - event: SkillRemoved(indexed address,string)
+          handler: handleSkillRemoved
+      file: ./src/user-profile.ts
+  - kind: ethereum
+    name: CollaborationManager
+    network: etherlink-testnet
+    source:
+      address: "0xA1C6680AfF4642e2B4119F9F3e3a5514d231BD72"
+      abi: CollaborationManager
+      startBlock: 20867320
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - CollaborationRequestCreated
+        - CollaborationManagerPaused
+        - CollaborationManagerRoleAdminChanged
+        - CollaborationManagerRoleGranted
+        - CollaborationManagerRoleRevoked
+        - TeamCreated
+        - TeamDisbanded
+        - TeamInviteAccepted
+        - TeamInviteRejected
+        - TeamInviteSent
+        - TeamMemberAdded
+        - TeamMemberRemoved
+        - CollaborationManagerUnpaused
+      abis:
+        - name: CollaborationManager
+          file: ./abis/CollaborationManager.json
+      eventHandlers:
+        - event: CollaborationRequestCreated(indexed uint256,indexed uint256,indexed address)
+          handler: handleCollaborationRequestCreated
+        - event: Paused(address)
+          handler: handlePaused
+        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+          handler: handleRoleAdminChanged
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+        - event: TeamCreated(indexed uint256,indexed uint256,indexed address,string)
+          handler: handleTeamCreated
+        - event: TeamDisbanded(indexed uint256)
+          handler: handleTeamDisbanded
+        - event: TeamInviteAccepted(indexed uint256,indexed address)
+          handler: handleTeamInviteAccepted
+        - event: TeamInviteRejected(indexed uint256,indexed address)
+          handler: handleTeamInviteRejected
+        - event: TeamInviteSent(indexed uint256,indexed address,indexed address)
+          handler: handleTeamInviteSent
+        - event: TeamMemberAdded(indexed uint256,indexed address)
+          handler: handleTeamMemberAdded
+        - event: TeamMemberRemoved(indexed uint256,indexed address)
+          handler: handleTeamMemberRemoved
+        - event: Unpaused(address)
+          handler: handleUnpaused
+      file: ./src/collaboration-manager.ts
