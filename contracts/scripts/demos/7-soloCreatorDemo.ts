@@ -212,38 +212,7 @@ async function main() {
     console.log('   🚀 NO REVIEW STEP NEEDED - Creator decides directly!\n');
 
     try {
-      // Debug: Check quest and submission state before selection
-      console.log('🔍 Debugging quest and submission state...');
-
-      const quest = await questBoard.getQuest(questId);
-      console.log(`📊 Quest status: ${quest.status}`);
-      console.log(`📊 Quest creator: ${quest.creator}`);
-      console.log(`📊 Quest bounty: ${ethers.formatEther(quest.bountyAmount)} ETH`);
-      console.log(`📊 Demo user: ${demoUser.address}`);
-      console.log(
-        `📊 Creator match: ${
-          quest.creator.toLowerCase() === demoUser.address.toLowerCase()
-        }`
-      );
-
-      try {
-        const submission = await submissionManager.getSubmission(submissionId);
-        console.log(`📊 Submission status: ${submission.status}`);
-        console.log(`📊 Submission quest ID: ${submission.questId}`);
-        console.log(`📊 Submission submitter: ${submission.submitter}`);
-      } catch (subError) {
-        console.log(`⚠️  Could not get submission: ${subError}`);
-      }
-
-      // Check RewardManager balance
-      try {
-        const rewardBalance = await ethers.provider.getBalance(deployedAddresses["DeployModule#RewardManager"]);
-        console.log(`📊 RewardManager balance: ${ethers.formatEther(rewardBalance)} ETH`);
-      } catch (balError) {
-        console.log(`⚠️  Could not get RewardManager balance: ${balError}`);
-      }
-
-      console.log('🚀 Executing selectWinners()...');
+      console.log('🚀 Executing ONE-CLICK winner selection...');
 
       const selectWinnersTx = await submissionManager
         .connect(demoUser)
@@ -260,8 +229,8 @@ async function main() {
       console.log('   🏅 Winner status set automatically');
       console.log('   ⚡ Zero bureaucracy - pure creator control!\n');
     } catch (error) {
-      console.log(`⚠️  Winner selection error: ${error}`);
-      console.log('ℹ️  Debugging what went wrong...\n');
+      console.log(`⚠️  Winner selection failed: ${error}`);
+      console.log('ℹ️  Please check contract permissions and state\n');
     }
 
     // PHASE 6: Results

@@ -1,0 +1,8 @@
+{
+  "etherlink-testnet": {
+    "QuestBoard": {
+      "address": "0x35b3fB8fb4D3614bd70Caa5A87B4F3dea2B1aCb3",
+      "startBlock": 20867286
+    }
+  }
+}

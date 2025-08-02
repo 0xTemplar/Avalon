@@ -1,0 +1,760 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      { "name": "_userProfile", "type": "address", "internalType": "address" },
+      {
+        "name": "_rewardManager",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "platformFeeRecipient_",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "ParticipantJoined",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "questId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "participant",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "ParticipantLeft",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "questId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "participant",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "Paused",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "PlatformFeeRecipientUpdated",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "newRecipient",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "PlatformFeeUpdated",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "newFeePercentage",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "QuestCancelled",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "questId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "QuestCompleted",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "questId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "winners",
+        "type": "address[]",
+        "indexed": false,
+        "internalType": "address[]"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "QuestCreated",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "questId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "creator",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "bountyAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "bountyToken",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "QuestUpdated",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "questId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "status",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum IQuestBoard.QuestStatus"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "RoleAdminChanged",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "role",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "previousAdminRole",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "newAdminRole",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "RoleGranted",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "role",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "sender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "RoleRevoked",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "role",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "sender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "Unpaused",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "ADMIN_ROLE",
+    "type": "function",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "bytes32", "internalType": "bytes32" }],
+    "stateMutability": "view"
+  },
+  {
+    "name": "DEFAULT_ADMIN_ROLE",
+    "type": "function",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "bytes32", "internalType": "bytes32" }],
+    "stateMutability": "view"
+  },
+  {
+    "name": "MODERATOR_ROLE",
+    "type": "function",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "bytes32", "internalType": "bytes32" }],
+    "stateMutability": "view"
+  },
+  {
+    "name": "approveParticipant",
+    "type": "function",
+    "inputs": [
+      { "name": "questId", "type": "uint256", "internalType": "uint256" },
+      { "name": "participant", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "cancelQuest",
+    "type": "function",
+    "inputs": [
+      { "name": "questId", "type": "uint256", "internalType": "uint256" },
+      { "name": "reason", "type": "string", "internalType": "string" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "createQuest",
+    "type": "function",
+    "inputs": [
+      { "name": "title", "type": "string", "internalType": "string" },
+      { "name": "description", "type": "string", "internalType": "string" },
+      { "name": "metadataURI", "type": "string", "internalType": "string" },
+      {
+        "name": "questType",
+        "type": "uint8",
+        "internalType": "enum IQuestBoard.QuestType"
+      },
+      { "name": "bountyAmount", "type": "uint256", "internalType": "uint256" },
+      { "name": "bountyToken", "type": "address", "internalType": "address" },
+      {
+        "name": "maxParticipants",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "maxCollaborators",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "submissionDeadline",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "reviewDeadline",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      { "name": "requiresApproval", "type": "bool", "internalType": "bool" },
+      { "name": "tags", "type": "string[]", "internalType": "string[]" },
+      {
+        "name": "requirements",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "skillsRequired",
+            "type": "string[]",
+            "internalType": "string[]"
+          },
+          {
+            "name": "minReputation",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          { "name": "kycRequired", "type": "bool", "internalType": "bool" },
+          {
+            "name": "allowedFileTypes",
+            "type": "string[]",
+            "internalType": "string[]"
+          },
+          {
+            "name": "maxFileSize",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ],
+        "internalType": "struct IQuestBoard.QuestRequirements"
+      }
+    ],
+    "outputs": [
+      { "name": "questId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "payable"
+  },
+  {
+    "name": "emergencyWithdraw",
+    "type": "function",
+    "inputs": [
+      { "name": "token", "type": "address", "internalType": "address" },
+      { "name": "amount", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "getActiveQuests",
+    "type": "function",
+    "inputs": [],
+    "outputs": [
+      { "name": "", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "name": "getQuest",
+    "type": "function",
+    "inputs": [
+      { "name": "questId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          { "name": "id", "type": "uint256", "internalType": "uint256" },
+          { "name": "creator", "type": "address", "internalType": "address" },
+          { "name": "title", "type": "string", "internalType": "string" },
+          { "name": "description", "type": "string", "internalType": "string" },
+          { "name": "metadataURI", "type": "string", "internalType": "string" },
+          {
+            "name": "questType",
+            "type": "uint8",
+            "internalType": "enum IQuestBoard.QuestType"
+          },
+          {
+            "name": "status",
+            "type": "uint8",
+            "internalType": "enum IQuestBoard.QuestStatus"
+          },
+          {
+            "name": "bountyAmount",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "bountyToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "maxParticipants",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "currentParticipants",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxCollaborators",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "submissionDeadline",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "reviewDeadline",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          { "name": "createdAt", "type": "uint256", "internalType": "uint256" },
+          { "name": "updatedAt", "type": "uint256", "internalType": "uint256" },
+          {
+            "name": "requiresApproval",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          { "name": "tags", "type": "string[]", "internalType": "string[]" }
+        ],
+        "internalType": "struct IQuestBoard.Quest"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "name": "getQuestParticipants",
+    "type": "function",
+    "inputs": [
+      { "name": "questId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "", "type": "address[]", "internalType": "address[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "name": "getQuestRequirements",
+    "type": "function",
+    "inputs": [
+      { "name": "questId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "skillsRequired",
+            "type": "string[]",
+            "internalType": "string[]"
+          },
+          {
+            "name": "minReputation",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          { "name": "kycRequired", "type": "bool", "internalType": "bool" },
+          {
+            "name": "allowedFileTypes",
+            "type": "string[]",
+            "internalType": "string[]"
+          },
+          {
+            "name": "maxFileSize",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ],
+        "internalType": "struct IQuestBoard.QuestRequirements"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "name": "getQuestsByCreator",
+    "type": "function",
+    "inputs": [
+      { "name": "creator", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "name": "getQuestsByTag",
+    "type": "function",
+    "inputs": [{ "name": "tag", "type": "string", "internalType": "string" }],
+    "outputs": [
+      { "name": "", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "name": "getRoleAdmin",
+    "type": "function",
+    "inputs": [
+      { "name": "role", "type": "bytes32", "internalType": "bytes32" }
+    ],
+    "outputs": [{ "name": "", "type": "bytes32", "internalType": "bytes32" }],
+    "stateMutability": "view"
+  },
+  {
+    "name": "getTotalQuests",
+    "type": "function",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "name": "grantRole",
+    "type": "function",
+    "inputs": [
+      { "name": "role", "type": "bytes32", "internalType": "bytes32" },
+      { "name": "account", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "hasRole",
+    "type": "function",
+    "inputs": [
+      { "name": "role", "type": "bytes32", "internalType": "bytes32" },
+      { "name": "account", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+    "stateMutability": "view"
+  },
+  {
+    "name": "isParticipant",
+    "type": "function",
+    "inputs": [
+      { "name": "questId", "type": "uint256", "internalType": "uint256" },
+      { "name": "user", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+    "stateMutability": "view"
+  },
+  {
+    "name": "joinQuest",
+    "type": "function",
+    "inputs": [
+      { "name": "questId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "leaveQuest",
+    "type": "function",
+    "inputs": [
+      { "name": "questId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "pause",
+    "type": "function",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "pauseQuest",
+    "type": "function",
+    "inputs": [
+      { "name": "questId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "paused",
+    "type": "function",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+    "stateMutability": "view"
+  },
+  {
+    "name": "rejectParticipant",
+    "type": "function",
+    "inputs": [
+      { "name": "questId", "type": "uint256", "internalType": "uint256" },
+      { "name": "participant", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "renounceRole",
+    "type": "function",
+    "inputs": [
+      { "name": "role", "type": "bytes32", "internalType": "bytes32" },
+      { "name": "account", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "resumeQuest",
+    "type": "function",
+    "inputs": [
+      { "name": "questId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "revokeRole",
+    "type": "function",
+    "inputs": [
+      { "name": "role", "type": "bytes32", "internalType": "bytes32" },
+      { "name": "account", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "rewardManager",
+    "type": "function",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract IRewardManager"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "name": "setPlatformFee",
+    "type": "function",
+    "inputs": [
+      { "name": "feePercentage", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "setPlatformFeeRecipient",
+    "type": "function",
+    "inputs": [
+      { "name": "recipient", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "supportsInterface",
+    "type": "function",
+    "inputs": [
+      { "name": "interfaceId", "type": "bytes4", "internalType": "bytes4" }
+    ],
+    "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+    "stateMutability": "view"
+  },
+  {
+    "name": "unpause",
+    "type": "function",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "updateQuest",
+    "type": "function",
+    "inputs": [
+      { "name": "questId", "type": "uint256", "internalType": "uint256" },
+      { "name": "title", "type": "string", "internalType": "string" },
+      { "name": "description", "type": "string", "internalType": "string" },
+      { "name": "metadataURI", "type": "string", "internalType": "string" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "updateQuestStatus",
+    "type": "function",
+    "inputs": [
+      { "name": "questId", "type": "uint256", "internalType": "uint256" },
+      {
+        "name": "status",
+        "type": "uint8",
+        "internalType": "enum IQuestBoard.QuestStatus"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "userProfile",
+    "type": "function",
+    "inputs": [],
+    "outputs": [
+      { "name": "", "type": "address", "internalType": "contract IUserProfile" }
+    ],
+    "stateMutability": "view"
+  }
+]

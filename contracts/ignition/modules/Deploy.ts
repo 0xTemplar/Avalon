@@ -35,13 +35,21 @@ const DeployModule = buildModule('DeployModule', (m) => {
 
   // Grant QUEST_BOARD_ROLE to QuestBoard in RewardManager
   m.call(rewardManager, 'grantQuestBoardRole', [questBoard]);
-  
+
   // Grant QUEST_BOARD_ROLE to SubmissionManager for bounty distribution
-  m.call(rewardManager, 'grantQuestBoardRole', [submissionManager], { id: 'grantQuestBoardRoleToSubmissionManager' });
+  m.call(rewardManager, 'grantQuestBoardRole', [submissionManager], {
+    id: 'grantQuestBoardRoleToSubmissionManager',
+  });
 
   // Grant ADMIN_ROLE to QuestBoard in UserProfile for updating user stats
   const adminRole = m.staticCall(userProfile, 'ADMIN_ROLE');
   m.call(userProfile, 'grantRole', [adminRole, questBoard]);
+
+  // Grant QUEST_BOARD_ROLE to SubmissionManager in UserProfile for reputation updates
+  const questBoardRole = m.staticCall(userProfile, 'QUEST_BOARD_ROLE');
+  m.call(userProfile, 'grantRole', [questBoardRole, submissionManager], {
+    id: 'grantQuestBoardRoleToSubmissionManagerInUserProfile',
+  });
 
   // Optional: Grant MODERATOR_ROLE to platform fee recipient in QuestBoard
   const moderatorRole = m.staticCall(questBoard, 'MODERATOR_ROLE');
