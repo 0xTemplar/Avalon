@@ -1,0 +1,23 @@
+{
+  "DeployModule": {
+    "platformFeeRecipient": "0x0000000000000000000000000000000000000000",
+    "platformFeePercentage": 250,
+    "network": {
+      "localhost": {
+        "platformFeeRecipient": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+      },
+      "sepolia": {
+        "platformFeeRecipient": "0x0000000000000000000000000000000000000000"
+      },
+      "mainnet": {
+        "platformFeeRecipient": "0x0000000000000000000000000000000000000000"
+      },
+      "etherlinkTestnet": {
+        "platformFeeRecipient": "0x0000000000000000000000000000000000000000"
+      },
+      "etherlinkMainnet": {
+        "platformFeeRecipient": "0x0000000000000000000000000000000000000000"
+      }
+    }
+  }
+}

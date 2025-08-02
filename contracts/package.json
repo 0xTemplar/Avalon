@@ -1,0 +1,33 @@
+{
+  "name": "aryza-quest-board-contracts",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy:etherlink": "hardhat ignition deploy ignition/modules/Deploy.ts --network etherlinkTestnet",
+    "deploy:local": "hardhat ignition deploy ignition/modules/Deploy.ts --network localhost",
+    "verify:etherlink": "hardhat ignition verify --network etherlinkTestnet",
+    "demo:profiles": "hardhat run scripts/demos/1-userProfileDemo.ts --network etherlinkTestnet",
+    "demo:quests": "hardhat run scripts/demos/2-questManagementDemo.ts --network etherlinkTestnet",
+    "demo:collaboration": "hardhat run scripts/demos/3-collaborationDemo.ts --network etherlinkTestnet",
+    "demo:submissions": "hardhat run scripts/demos/4-submissionDemo.ts --network etherlinkTestnet",
+    "demo:rewards": "hardhat run scripts/demos/5-rewardDistributionDemo.ts --network etherlinkTestnet",
+    "demo:end-to-end": "hardhat run scripts/demos/6-endToEndDemo.ts --network etherlinkTestnet",
+    "demo:solo-creator": "hardhat run scripts/demos/7-soloCreatorDemo.ts --network etherlinkTestnet",
+    "demo:all": "npm run demo:profiles && npm run demo:quests && npm run demo:collaboration && npm run demo:submissions && npm run demo:rewards",
+    "demo:quick": "npm run demo:end-to-end",
+    "demo:featured": "npm run demo:solo-creator"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^4.9.0",
+    "hardhat": "^2.17.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}
