@@ -1,4 +1,15 @@
-import React from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from 'react';
+import { usePrivy } from '@privy-io/react-auth';
+import { toast } from 'react-toastify';
+import { useUserProfile } from '../../hooks/useUserProfile';
+import { useUsernameCache } from '../../hooks/useUsernameCache';
+import UserRegistrationModal from '../modals/UserRegistrationModal';
 
 interface NavigationProps {
   isMobile: boolean;
@@ -27,6 +38,158 @@ export default function Navigation({
   setShowMobileMenu,
   setShowCreateModal,
 }: NavigationProps) {
+  const { login, logout, authenticated, user } = usePrivy();
+  const { hasProfile, profile, isCheckingProfile } = useUserProfile();
+  const { getCachedUsername, setCachedUsername } = useUsernameCache();
+  const [showWalletDropdown, setShowWalletDropdown] = useState(false);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowWalletDropdown(false);
+      }
+    };
+
+    if (showWalletDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showWalletDropdown]);
+
+  // Check for profile registration when user authenticates
+  useEffect(() => {
+    if (authenticated && hasProfile === false && !isCheckingProfile) {
+      // User is authenticated but doesn't have a profile, show registration modal
+      setShowRegistrationModal(true);
+    }
+  }, [authenticated, hasProfile, isCheckingProfile]);
+
+  const handleAuth = () => {
+    if (authenticated) {
+      logout();
+      setIsWalletConnected(false);
+    } else {
+      login();
+      setIsWalletConnected(true);
+    }
+  };
+
+  const walletAddress = useMemo(() => {
+    if (user?.wallet?.address) {
+      return user.wallet.address;
+    }
+    if (user?.linkedAccounts && user.linkedAccounts.length > 0) {
+      const walletAccount = user.linkedAccounts.find(
+        (account) => account.type === 'wallet'
+      );
+      return walletAccount?.address;
+    }
+    return null;
+  }, [user?.wallet?.address, user?.linkedAccounts]);
+
+  const truncateAddress = useCallback((address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  }, []);
+
+  // Cache username when profile data is available
+  useEffect(() => {
+    if (profile?.username && walletAddress) {
+      setCachedUsername(walletAddress, profile.username);
+    }
+  }, [profile?.username, setCachedUsername, walletAddress]);
+
+  const displayName = useMemo(() => {
+    // First check if we have fresh profile data
+    if (profile?.username) {
+      return profile.username;
+    }
+
+    // Fallback to cached username if available
+    if (walletAddress) {
+      const cachedUsername = getCachedUsername(walletAddress);
+      if (cachedUsername) {
+        return cachedUsername;
+      }
+      return truncateAddress(walletAddress);
+    }
+
+    return 'Connected';
+  }, [profile?.username, walletAddress, getCachedUsername, truncateAddress]);
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success('Address copied to clipboard!', {
+        position: 'top-right',
+        autoClose: 2000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: false,
+        style: {
+          background: '#0a0a0a',
+          border: '1px solid #00ff88',
+          color: '#fff',
+          fontFamily: 'var(--font-space-grotesk)',
+          fontSize: '12px',
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+        },
+      });
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+      toast.error('Failed to copy address', {
+        position: 'top-right',
+        autoClose: 2000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: false,
+        style: {
+          background: '#0a0a0a',
+          border: '1px solid #ff0088',
+          color: '#fff',
+          fontFamily: 'var(--font-space-grotesk)',
+          fontSize: '12px',
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+        },
+      });
+    }
+  };
+
+  const handleCreateQuest = () => {
+    if (!authenticated) {
+      toast.warning('Please sign in to create a quest', {
+        position: 'top-right',
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: false,
+        style: {
+          background: '#0a0a0a',
+          border: '1px solid #ffa500',
+          color: '#fff',
+          fontFamily: 'var(--font-space-grotesk)',
+          fontSize: '12px',
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+        },
+      });
+      return;
+    }
+    setShowCreateModal(true);
+  };
+
   return (
     <>
       {/* Navigation - Responsive */}
@@ -222,7 +385,7 @@ export default function Navigation({
             </div>
 
             <button
-              onClick={() => setShowCreateModal(true)}
+              onClick={handleCreateQuest}
               style={{
                 padding: '12px 30px',
                 background: 'none',
@@ -251,34 +414,187 @@ export default function Navigation({
               Create Quest
             </button>
 
-            <button
-              onClick={() => setIsWalletConnected(!isWalletConnected)}
-              style={{
-                width: '40px',
-                height: '40px',
-                border: `1px solid ${isWalletConnected ? '#00ff88' : '#333'}`,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                background: isWalletConnected
-                  ? 'rgba(0,255,136,0.1)'
-                  : 'transparent',
-                color: isWalletConnected ? '#00ff88' : '#fff',
-                transition: 'all 0.3s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'rotate(90deg)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'rotate(0)';
-              }}
-            >
-              <span style={{ fontSize: '20px' }}>
-                {isWalletConnected ? '◉' : '⊕'}
-              </span>
-            </button>
+            <div style={{ position: 'relative' }} ref={dropdownRef}>
+              <button
+                onClick={
+                  authenticated
+                    ? () => setShowWalletDropdown(!showWalletDropdown)
+                    : handleAuth
+                }
+                style={{
+                  padding: '12px 30px',
+                  background: authenticated ? 'rgba(0,255,136,0.1)' : 'none',
+                  border: `1px solid ${authenticated ? '#00ff88' : '#00ff88'}`,
+                  color: authenticated ? '#00ff88' : '#00ff88',
+                  fontSize: '12px',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s',
+                  clipPath:
+                    'polygon(0 0, calc(100% - 10px) 0, 100% 100%, 10px 100%)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow =
+                    '0 5px 20px rgba(0,255,136,0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                {authenticated ? displayName : 'Sign In'}
+              </button>
+
+              {showWalletDropdown && authenticated && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50px',
+                    right: 0,
+                    width: '250px',
+                    background: '#0a0a0a',
+                    border: '1px solid #333',
+                    padding: '20px',
+                    zIndex: 100,
+                    clipPath:
+                      'polygon(0 0, calc(100% - 10px) 0, 100% 100%, 10px 100%)',
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontSize: '14px',
+                      marginBottom: '16px',
+                      color: '#00ff88',
+                      letterSpacing: '0.1em',
+                    }}
+                  >
+                    WALLET
+                  </h3>
+
+                  {/* Profile Info */}
+                  <div
+                    style={{
+                      padding: '12px 0',
+                      borderBottom: '1px solid #222',
+                      marginBottom: '16px',
+                    }}
+                  >
+                    {profile?.username && (
+                      <>
+                        <p
+                          style={{
+                            fontSize: '10px',
+                            color: '#666',
+                            marginBottom: '4px',
+                            letterSpacing: '0.1em',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          Username
+                        </p>
+                        <p
+                          style={{
+                            fontSize: '14px',
+                            color: '#00ff88',
+                            marginBottom: '12px',
+                            fontFamily: 'var(--font-space-grotesk)',
+                          }}
+                        >
+                          {profile.username}
+                        </p>
+                      </>
+                    )}
+                    {walletAddress && (
+                      <>
+                        <p
+                          style={{
+                            fontSize: '10px',
+                            color: '#666',
+                            marginBottom: '4px',
+                            letterSpacing: '0.1em',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          Address
+                        </p>
+                        <p
+                          style={{
+                            fontSize: '12px',
+                            color: '#fff',
+                            fontFamily: 'monospace',
+                          }}
+                        >
+                          {truncateAddress(walletAddress)}
+                        </p>
+                      </>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (walletAddress) {
+                        copyToClipboard(walletAddress);
+                        setShowWalletDropdown(false);
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      background: 'rgba(0,255,136,0.1)',
+                      border: '1px solid #00ff88',
+                      color: '#00ff88',
+                      fontSize: '12px',
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                      marginBottom: '12px',
+                      transition: 'all 0.3s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(0,255,136,0.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(0,255,136,0.1)';
+                    }}
+                  >
+                    Copy Address
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      handleAuth();
+                      setShowWalletDropdown(false);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      background: 'transparent',
+                      border: '1px solid #666',
+                      color: '#666',
+                      fontSize: '12px',
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#ff0088';
+                      e.currentTarget.style.color = '#ff0088';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#666';
+                      e.currentTarget.style.color = '#666';
+                    }}
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           /* Mobile Menu Button */
@@ -369,7 +685,7 @@ export default function Navigation({
           {/* Mobile Actions */}
           <button
             onClick={() => {
-              setShowCreateModal(true);
+              handleCreateQuest();
               setShowMobileMenu(false);
             }}
             style={{
@@ -386,23 +702,95 @@ export default function Navigation({
             Create Quest
           </button>
 
-          <button
-            onClick={() => {
-              setIsWalletConnected(!isWalletConnected);
-              setShowMobileMenu(false);
-            }}
-            style={{
-              padding: '16px',
-              background: 'transparent',
-              color: '#00ff88',
-              border: '1px solid #00ff88',
-              fontSize: '14px',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-            }}
-          >
-            {isWalletConnected ? 'Disconnect Wallet' : 'Connect Wallet'}
-          </button>
+          {authenticated ? (
+            <div
+              style={{
+                border: '1px solid #333',
+                padding: '16px',
+                marginBottom: '12px',
+              }}
+            >
+              <p
+                style={{
+                  fontSize: '10px',
+                  color: '#666',
+                  marginBottom: '8px',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Connected Wallet
+              </p>
+              <p
+                style={{
+                  fontSize: '14px',
+                  color: '#00ff88',
+                  fontFamily: 'monospace',
+                  marginBottom: '16px',
+                }}
+              >
+                {displayName}
+              </p>
+
+              <button
+                onClick={() => {
+                  if (walletAddress) {
+                    copyToClipboard(walletAddress);
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: 'rgba(0,255,136,0.1)',
+                  border: '1px solid #00ff88',
+                  color: '#00ff88',
+                  fontSize: '12px',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  marginBottom: '12px',
+                }}
+              >
+                Copy Address
+              </button>
+
+              <button
+                onClick={() => {
+                  handleAuth();
+                  setShowMobileMenu(false);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: 'transparent',
+                  border: '1px solid #666',
+                  color: '#666',
+                  fontSize: '12px',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                handleAuth();
+                setShowMobileMenu(false);
+              }}
+              style={{
+                padding: '16px',
+                background: 'transparent',
+                color: '#00ff88',
+                border: '1px solid #00ff88',
+                fontSize: '14px',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Sign In
+            </button>
+          )}
 
           {/* Notifications */}
           <div
@@ -445,6 +833,31 @@ export default function Navigation({
           </div>
         </div>
       )}
+
+      <UserRegistrationModal
+        isOpen={showRegistrationModal}
+        onClose={() => setShowRegistrationModal(false)}
+        onSuccess={() => {
+          setShowRegistrationModal(false);
+          toast.success('Welcome to Quest Board!', {
+            position: 'top-right',
+            autoClose: 3000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: false,
+            style: {
+              background: '#0a0a0a',
+              border: '1px solid #00ff88',
+              color: '#fff',
+              fontFamily: 'var(--font-space-grotesk)',
+              fontSize: '12px',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+            },
+          });
+        }}
+      />
     </>
   );
 }
