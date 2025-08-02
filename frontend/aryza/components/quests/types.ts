@@ -4,7 +4,11 @@ export interface Quest {
   description: string;
   category: string;
   reward: string;
-  creator: string;
+  creator: {
+    address: string;
+    username: string;
+    avatar: string;
+  };
   participants: number;
   deadline: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';

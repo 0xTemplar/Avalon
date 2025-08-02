@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { Quest } from './types';
 
 interface QuestGridProps {
@@ -40,7 +41,7 @@ export default function QuestGrid({
         gridAutoRows: 'auto',
       }}
     >
-      {quests.map((quest, index) => (
+      {quests.map((quest) => (
         <div
           key={quest.id}
           onMouseEnter={() => setHoveredCard(quest.id)}
@@ -58,7 +59,7 @@ export default function QuestGrid({
             cursor: 'pointer',
             position: 'relative',
             overflow: 'hidden',
-            maxHeight: '500px',
+            height: !isMobile ? '400px' : '340px',
             display: 'flex',
             flexDirection: 'column',
             transform:
@@ -68,6 +69,188 @@ export default function QuestGrid({
             willChange: 'transform',
           }}
         >
+          {/* Creator Profile - Floating Orb Design */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '30px',
+              left: '30px',
+              zIndex: 25,
+            }}
+          >
+            {/* Glowing Orb Container */}
+            <div
+              style={{
+                position: 'relative',
+                width: '80px',
+                height: '80px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {/* Outer Glow */}
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: '-20px',
+                  borderRadius: '50%',
+                  background: `radial-gradient(circle, ${quest.color}20 0%, transparent 70%)`,
+                  opacity: hoveredCard === quest.id ? 1 : 0,
+                  transition: 'opacity 0.5s ease',
+                  animation:
+                    hoveredCard === quest.id
+                      ? 'pulse 2s ease-in-out infinite'
+                      : 'none',
+                }}
+              />
+
+              {/* Energy Ring */}
+              <div
+                style={{
+                  position: 'absolute',
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  background: 'transparent',
+                  border: `2px solid ${quest.color}30`,
+                  transform:
+                    hoveredCard === quest.id ? 'scale(1.2)' : 'scale(1)',
+                  transition: 'transform 0.3s ease',
+                }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    background: quest.color,
+                    transform: 'translate(-50%, -50%)',
+                    boxShadow: `0 0 10px ${quest.color}`,
+                    animation:
+                      hoveredCard === quest.id
+                        ? 'orbit 3s linear infinite'
+                        : 'none',
+                  }}
+                />
+              </div>
+
+              {/* Profile Image Core */}
+              <div
+                style={{
+                  position: 'relative',
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  background: `linear-gradient(135deg, ${quest.color}40, transparent)`,
+                  padding: '2px',
+                  boxShadow: `0 0 20px ${quest.color}40`,
+                }}
+              >
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    background: '#050505',
+                  }}
+                >
+                  <Image
+                    src={quest.creator.avatar}
+                    alt={quest.creator.username}
+                    width={56}
+                    height={56}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      filter:
+                        hoveredCard === quest.id
+                          ? 'brightness(1.1)'
+                          : 'brightness(1)',
+                      transition: 'filter 0.3s ease',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Username Badge */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '-25px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <div
+                  style={{
+                    background: 'rgba(0, 0, 0, 0.8)',
+                    backdropFilter: 'blur(10px)',
+                    padding: '4px 12px',
+                    borderRadius: '16px',
+                    border: `1px solid ${quest.color}40`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '4px',
+                      height: '4px',
+                      borderRadius: '50%',
+                      background: quest.color,
+                      boxShadow: `0 0 6px ${quest.color}`,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: '#fff',
+                      fontFamily: 'var(--font-space-grotesk)',
+                    }}
+                  >
+                    {quest.creator.username}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Add keyframe animations */}
+          <style jsx>{`
+            @keyframes pulse {
+              0%,
+              100% {
+                opacity: 0.6;
+                transform: scale(1);
+              }
+              50% {
+                opacity: 1;
+                transform: scale(1.1);
+              }
+            }
+
+            @keyframes orbit {
+              from {
+                transform: translate(-50%, -50%) rotate(0deg) translateX(35px)
+                  rotate(0deg);
+              }
+              to {
+                transform: translate(-50%, -50%) rotate(360deg) translateX(35px)
+                  rotate(-360deg);
+              }
+            }
+          `}</style>
+
           {/* Bookmark Button */}
           <button
             onClick={(e) => {
@@ -100,9 +283,9 @@ export default function QuestGrid({
               height: '200px',
               background: quest.color,
               opacity: 0.03,
-              clipPath: `polygon(${Math.random() * 100}% 0%, 100% ${
-                Math.random() * 100
-              }%, 100% 100%, ${Math.random() * 100}% 100%)`,
+              clipPath: `polygon(${(parseInt(quest.id) * 37) % 100}% 0%, 100% ${
+                (parseInt(quest.id) * 73) % 100
+              }%, 100% 100%, ${(parseInt(quest.id) * 91) % 100}% 100%)`,
               transition: 'opacity 0.2s ease',
             }}
           ></div>
@@ -130,6 +313,7 @@ export default function QuestGrid({
               flex: 1,
               display: 'flex',
               flexDirection: 'column',
+              marginTop: '20px', // Adjusted spacing
             }}
           >
             <div style={{ marginBottom: '20px' }}>
@@ -176,19 +360,99 @@ export default function QuestGrid({
                 justifyContent: 'space-between',
                 alignItems: 'flex-end',
                 marginTop: 'auto',
+                marginLeft: '100px', // Space for floating orb
               }}
             >
               <div>
+                {/* Reward Container */}
                 <div
                   style={{
-                    fontSize: !isMobile ? '28px' : '24px',
-                    fontWeight: '300',
-                    color: '#fff',
-                    marginBottom: '4px',
+                    background:
+                      hoveredCard === quest.id
+                        ? `linear-gradient(90deg, ${quest.color}10 0%, transparent 80%)`
+                        : 'transparent',
+                    padding: hoveredCard === quest.id ? '8px 12px 8px 0' : '0',
+                    marginLeft: hoveredCard === quest.id ? '-12px' : '0',
+                    paddingLeft: hoveredCard === quest.id ? '12px' : '0',
+                    borderRadius: '6px',
+                    marginBottom: '12px',
+                    transition: 'all 0.3s ease',
+                    display: 'inline-block',
                   }}
                 >
-                  {quest.reward}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'baseline',
+                      gap: '12px',
+                    }}
+                  >
+                    {/* Primary Amount */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'baseline',
+                        gap: '6px',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: !isMobile ? '28px' : '24px',
+                          fontWeight: '300',
+                          color: '#fff',
+                          letterSpacing: '-0.02em',
+                        }}
+                      >
+                        {quest.reward.split(' ')[0]}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: !isMobile ? '14px' : '12px',
+                          color: quest.color,
+                          fontWeight: '500',
+                          letterSpacing: '0.05em',
+                        }}
+                      >
+                        XTZ
+                      </span>
+                    </div>
+
+                    {/* Separator */}
+                    <span
+                      style={{
+                        color: '#333',
+                        fontSize: '16px',
+                        opacity: hoveredCard === quest.id ? 0.5 : 0.3,
+                        transition: 'opacity 0.3s ease',
+                      }}
+                    >
+                      |
+                    </span>
+
+                    {/* USD Value */}
+                    <div
+                      style={{
+                        opacity: hoveredCard === quest.id ? 0.9 : 0.4,
+                        transition: 'opacity 0.3s ease',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: !isMobile ? '16px' : '14px',
+                          color: '#888',
+                          fontWeight: '400',
+                        }}
+                      >
+                        $
+                        {(
+                          parseFloat(quest.reward.replace(/[^\d.-]/g, '')) * 1.5
+                        ).toFixed(0)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Meta Info */}
                 <div
                   style={{
                     fontSize: '11px',
