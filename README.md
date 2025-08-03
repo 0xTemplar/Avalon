@@ -3,8 +3,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/your-org/avalon/releases)
 
+
+![avalon promo](https://github.com/user-attachments/assets/0412d1f5-894a-4ca0-86c8-091048491333)
 **The Decentralized Creative Economy Platform**
 
+## Overview
 Avalon is an Etherlink-powered platform that revolutionizes how creative professionals collaborate, compete, and get compensated for their work. Built on Etherlink (Tezos Layer 2), Avalon connects creators, clients, and collaborators in a trustless, transparent ecosystem where creative challenges become opportunities for earning and growth.
 
 ## Table of Contents
