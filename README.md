@@ -1,14 +1,20 @@
 # Avalon
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/your-org/avalon/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/your-org/avalon/releases)
 
+
+![avalon promo](https://github.com/user-attachments/assets/0412d1f5-894a-4ca0-86c8-091048491333)
 **The Decentralized Creative Economy Platform**
 
-Avalon is a blockchain-powered platform that revolutionizes how creative professionals collaborate, compete, and get compensated for their work. Built on Etherlink (Tezos Layer 2), Avalon connects creators, clients, and collaborators in a trustless, transparent ecosystem where creative challenges become opportunities for earning and growth.
+## Overview
+Avalon is an Etherlink-powered platform that revolutionizes how creative professionals collaborate, compete, and get compensated for their work. Built on Etherlink (Tezos Layer 2), Avalon connects creators, clients, and collaborators in a trustless, transparent ecosystem where creative challenges become opportunities for earning and growth.
 
 ## Table of Contents
 
 - [The Problem](#the-problem)
 - [Our Solution](#our-solution)
-- [Why Etherlink?](#why-etherlink)
+- [Use Cases](#use-cases)
 - [Technical Architecture](#technical-architecture)
   - [Smart Contract Layer](#smart-contract-layer)
   - [Frontend Application](#frontend-application)
@@ -17,13 +23,7 @@ Avalon is a blockchain-powered platform that revolutionizes how creative profess
   - [Prerequisites](#prerequisites)
   - [Quick Start](#quick-start)
   - [Demo Scripts](#demo-scripts)
-- [Use Cases](#use-cases)
-- [Roadmap](#roadmap)
 - [Contributing](#contributing)
-- [Security](#security)
-- [License](#license)
-- [Community & Support](#community--support)
-- [Acknowledgments](#acknowledgments)
 
 ## The Problem
 
@@ -48,27 +48,35 @@ Avalon addresses these challenges through a comprehensive decentralized platform
 
 ### Core Value Propositions
 
-**🎯 Quest-Based Creative Economy**
+- **🎯 Quest-Based Creative Economy**: 
 Transform creative projects into structured "quests" with clear requirements, deadlines, and bounties. Whether you need a logo design, video editing, or complex collaborative projects, Avalon provides the infrastructure to manage it all.
 
-**🤝 Seamless Collaboration**
+- **🤝 Seamless Collaboration**
 Built-in team formation and management tools allow creators to find partners, form teams, and split rewards automatically. Our collaboration manager handles everything from initial invitations to final compensation distribution.
 
-**💎 Transparent Reputation System**
+- **💎 Transparent Reputation System**
 Every interaction, submission, and collaboration is recorded on-chain, building immutable reputation profiles that help creators showcase their skills and reliability while helping clients make informed decisions.
 
-**⚡ Instant, Fair Compensation**
+- **⚡ Instant, Fair Compensation**
 Smart contracts automate payment distribution based on predefined rules. No more waiting for payments or disputes over compensation - everything is transparent and executed automatically.
 
-## Why Etherlink?
+## Use Cases
 
-Avalon is built on **Etherlink**, Tezos's EVM-compatible Layer 2 solution, providing unique advantages for the creative economy:
+### Real-World Example: [Etherlink Liquidity Campaign](https://avalon-etherlink-3yg7.vercel.app/quest/ma9fGWiboHVRWNGDg4bX)
 
-- **Low Transaction Costs**: Creators can participate in quests without worrying about prohibitive gas fees
-- **Fast Finality**: Quick transaction confirmation enables smooth user experiences
-- **Ethereum Compatibility**: Full EVM compatibility allows us to leverage existing Ethereum tooling and infrastructure
-- **Energy Efficiency**: Tezos's proof-of-stake consensus aligns with the environmental consciousness of many creative professionals
-- **Institutional Adoption**: Tezos's growing adoption in the arts and culture space makes it a natural fit for creative applications
+**Scenario**: Design quest for Etherlink liquidity provision campaign on AppleFarm
+- **Quest Type**: Creative competition for promotional materials
+- **Bounty**: 100 XTZ distributed among top submissions
+- **Participants**: Designers from the Avalon community
+- **Deliverables**: Banner designs, social media graphics, and promotional materials
+- **Results**: High-quality designs delivered within 72 hours
+
+**Featured Submissions:**
+- [Explore Defi On Etherlink](https://gateway.pinata.cloud/ipfs/bafkreiab6xdhakzqckl7s37q6glch6ihuufgtjry2jgnviwu47tbecczuy) - Modern gradient design with animated elements
+- [AppleFarm Liquidity Campaign](https://gateway.pinata.cloud/ipfs/bafkreiadt37wn6d5oi7yaa6rpfu22iyndai3ds7cvxd5c6uiq2jkdprebu) - Campaign promotion design
+
+This real campaign demonstrated Avalon's ability to rapidly mobilize creative talent for time-sensitive marketing needs while ensuring fair compensation and quality outcomes.
+
 
 ## Technical Architecture
 
@@ -168,20 +176,10 @@ Explore the platform functionality through our comprehensive demo scripts:
 ```bash
 cd contracts
 
-# Basic user flows
-npm run demo:user-profile
-npm run demo:quest-management
-npm run demo:collaboration
-npm run demo:submissions
-npm run demo:rewards
-
 # Complete end-to-end scenarios
-npm run demo:end-to-end
 npm run demo:solo-creator
 npm run demo:multi-creator
 ```
-
-## Use Cases
 
 ### Individual Freelancers
 **Scenario**: A graphic designer looking for consistent work
@@ -189,32 +187,6 @@ npm run demo:multi-creator
 - **Participation**: Submit proposals and compete for projects
 - **Execution**: Complete work with transparent milestone tracking
 - **Growth**: Build on-chain reputation for future opportunities
-
-## Roadmap
-
-### Phase 1: Foundation (Current)
-- ✅ Core smart contract deployment
-- ✅ Basic frontend interface
-- ✅ Etherlink integration
-- ✅ Team collaboration features
-
-### Phase 2: Enhancement (Q2 2024)
-- 🔄 Advanced reputation algorithms
-- 🔄 Mobile application
-- 🔄 Enhanced file storage with Filecoin
-- 🔄 Cross-chain bridge integration
-
-### Phase 3: Ecosystem (Q3 2024)
-- 📅 DAO governance implementation
-- 📅 Creative NFT marketplace integration
-- 📅 AI-powered quest matching
-- 📅 Enterprise partnership tools
-
-### Phase 4: Scale (Q4 2024)
-- 📅 Multi-language support
-- 📅 Advanced analytics dashboard
-- 📅 Integration with major creative platforms
-- 📅 Educational partnership programs
 
 ## Contributing
 
@@ -227,50 +199,6 @@ We welcome contributions from the community! Here's how you can get involved:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-### Bug Reports
-Please use GitHub Issues to report bugs. Include:
-- Clear description of the issue
-- Steps to reproduce
-- Expected vs actual behavior
-- Screenshots if applicable
-
-### Feature Requests
-We love hearing about new ideas! Please use GitHub Discussions to:
-- Propose new features
-- Discuss implementation approaches
-- Share use cases and requirements
-
-## Security
-
-Security is paramount in handling creative work and compensation. Our approach includes:
-
-- **Smart Contract Audits**: All contracts undergo rigorous security audits
-- **Multi-signature Controls**: Critical functions require multiple confirmations
-- **Emergency Pause Mechanisms**: Ability to pause contracts in case of issues
-- **Gradual Rollout**: New features are tested extensively before mainnet deployment
-
-### Bug Bounty Program
-We run an ongoing bug bounty program. Security researchers can report vulnerabilities through our responsible disclosure process. Contact security@avalon.dev for details.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Community & Support
-
-- **Website**: [avalon.dev](https://avalon.dev)
-- **Discord**: [Join our community](https://discord.gg/avalon)
-- **Twitter**: [@AvalonQuests](https://twitter.com/AvalonQuests)
-- **Documentation**: [docs.avalon.dev](https://docs.avalon.dev)
-- **Support**: support@avalon.dev
-
-## Acknowledgments
-
-- **Etherlink Team**: For providing the infrastructure that makes Avalon possible
-- **Tezos Foundation**: For supporting innovative applications in the creative space
-- **OpenZeppelin**: For battle-tested smart contract libraries
-- **The Graph**: For efficient blockchain data indexing
-- **IPFS/Filecoin**: For decentralized storage solutions
 
 ---
 
