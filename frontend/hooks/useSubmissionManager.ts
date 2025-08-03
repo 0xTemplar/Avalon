@@ -22,7 +22,9 @@ export interface CreateSubmissionParams {
 
 export interface SubmissionManagerHook {
   createSubmission: (params: CreateSubmissionParams) => Promise<void>;
+  selectWinners: (questId: string, submissionIds: string[]) => Promise<void>;
   isCreating: boolean;
+  isSelectingWinners: boolean;
   error: string | null;
 }
 
@@ -31,6 +33,7 @@ export const useSubmissionManager = (): SubmissionManagerHook => {
   const { profile: userProfile } = useUserProfile();
   const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
+  const [isSelectingWinners, setIsSelectingWinners] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Create contract instances
@@ -232,9 +235,66 @@ export const useSubmissionManager = (): SubmissionManagerHook => {
     ]
   );
 
+  // Select winners for a quest
+  const selectWinners = useCallback(
+    async (questId: string, submissionIds: string[]) => {
+      if (!submissionContract || !address || !signer) {
+        throw new Error('Wallet not connected or contracts not available');
+      }
+
+      setIsSelectingWinners(true);
+      setError(null);
+
+      try {
+        console.log('🏆 Selecting winners for quest:', questId);
+        console.log('🎯 Submission IDs:', submissionIds);
+
+        // Call the smart contract to select winners
+        const tx = await submissionContract.selectWinners(
+          questId,
+          submissionIds
+        );
+
+        console.log('⏳ Transaction sent:', tx.hash);
+        const receipt = await tx.wait();
+        console.log('✅ Winners selected successfully!', receipt);
+
+        // Invalidate and refetch relevant queries
+        await queryClient.invalidateQueries({
+          queryKey: ['submissions'],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ['quest-detail'],
+        });
+
+        console.log('✅ Winner selection completed!');
+      } catch (err) {
+        console.error('Error selecting winners:', err);
+
+        if (err instanceof Error) {
+          console.error('Error details:', {
+            message: err.message,
+            name: err.name,
+            stack: err.stack,
+          });
+        }
+
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to select winners';
+        setError(errorMessage);
+        throw err;
+      } finally {
+        setIsSelectingWinners(false);
+      }
+    },
+    [submissionContract, address, signer, queryClient]
+  );
+
   return {
     createSubmission,
+    selectWinners,
     isCreating,
+    isSelectingWinners,
     error,
   };
 };

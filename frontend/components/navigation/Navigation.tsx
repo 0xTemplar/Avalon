@@ -5,11 +5,13 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
+import { useRouter } from 'next/router';
 import { usePrivy } from '@privy-io/react-auth';
 import { toast } from 'react-toastify';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { useUsernameCache } from '../../hooks/useUsernameCache';
 import UserRegistrationModal from '../modals/UserRegistrationModal';
+import Image from 'next/image';
 
 interface NavigationProps {
   isMobile: boolean;
@@ -38,6 +40,7 @@ export default function Navigation({
   setShowMobileMenu,
   setShowCreateModal,
 }: NavigationProps) {
+  const router = useRouter();
   const { login, logout, authenticated, user } = usePrivy();
   const { hasProfile, profile, isCheckingProfile } = useUserProfile();
   const { getCachedUsername, setCachedUsername } = useUsernameCache();
@@ -223,7 +226,7 @@ export default function Navigation({
               transform: 'rotate(-15deg)',
             }}
           >
-            <div
+            {/* <div
               style={{
                 position: 'absolute',
                 inset: 0,
@@ -232,7 +235,7 @@ export default function Navigation({
                   'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)',
                 animation: 'pulse-green 3s infinite',
               }}
-            ></div>
+            ></div> */}
           </div>
           <h1
             style={{
@@ -243,9 +246,12 @@ export default function Navigation({
               fontFamily: 'var(--font-space-grotesk)',
             }}
           >
-            <span style={{ color: '#00ff88' }}>Quest</span>
-            <span style={{ color: '#666', margin: '0 8px' }}>/</span>
-            <span style={{ color: '#fff' }}>Board</span>
+            <Image
+              src="/avalon-logo.png"
+              alt="Quest Board"
+              width={100}
+              height={100}
+            />
           </h1>
         </div>
 
@@ -536,6 +542,34 @@ export default function Navigation({
 
                   <button
                     onClick={() => {
+                      router.push('/profile');
+                      setShowWalletDropdown(false);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      background: 'rgba(0,204,255,0.1)',
+                      border: '1px solid #00ccff',
+                      color: '#00ccff',
+                      fontSize: '12px',
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                      marginBottom: '12px',
+                      transition: 'all 0.3s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(0,204,255,0.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(0,204,255,0.1)';
+                    }}
+                  >
+                    View Profile
+                  </button>
+
+                  <button
+                    onClick={() => {
                       if (walletAddress) {
                         copyToClipboard(walletAddress);
                         setShowWalletDropdown(false);
@@ -731,6 +765,26 @@ export default function Navigation({
               >
                 {displayName}
               </p>
+
+              <button
+                onClick={() => {
+                  router.push('/profile');
+                  setShowMobileMenu(false);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: 'rgba(0,204,255,0.1)',
+                  border: '1px solid #00ccff',
+                  color: '#00ccff',
+                  fontSize: '12px',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  marginBottom: '12px',
+                }}
+              >
+                View Profile
+              </button>
 
               <button
                 onClick={() => {

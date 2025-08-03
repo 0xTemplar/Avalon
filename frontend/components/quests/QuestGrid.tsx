@@ -299,20 +299,8 @@ export default function QuestGrid({
             }}
           ></div>
 
-          {/* Quest number */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '40px',
-              right: '40px',
-              fontSize: !isMobile ? '48px' : '36px',
-              fontWeight: '900',
-              color: '#111',
-              fontFamily: 'var(--font-space-grotesk)',
-            }}
-          >
-            {quest.id.padStart(2, '0')}
-          </div>
+         
+         
 
           {/* Content */}
           <div

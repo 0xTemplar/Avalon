@@ -14,6 +14,7 @@
     "demo:rewards": "hardhat run scripts/demos/5-rewardDistributionDemo.ts --network etherlinkTestnet",
     "demo:end-to-end": "hardhat run scripts/demos/6-endToEndDemo.ts --network etherlinkTestnet",
     "demo:solo-creator": "hardhat run scripts/demos/7-soloCreatorDemo.ts --network etherlinkTestnet",
+    "demo:multi-creator": "hardhat run scripts/demos/8-multiCreatorDemo.ts --network etherlinkTestnet",
     "demo:all": "npm run demo:profiles && npm run demo:quests && npm run demo:collaboration && npm run demo:submissions && npm run demo:rewards",
     "demo:quick": "npm run demo:end-to-end",
     "demo:featured": "npm run demo:solo-creator"

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { useQueryClient } from '@tanstack/react-query';
 import Avvvatars from 'avvvatars-react';
 import { useQuestDetail, type QuestDetail } from '../../hooks/useQuestDetail';
 import {
@@ -8,6 +9,8 @@ import {
   useQuestSubmissions,
 } from '../../hooks/useSubmissionManager';
 import { usePinata } from '../../hooks/usePinata';
+import { usePrivyEthers } from '../../hooks/usePrivyEthers';
+import { firebaseService } from '../../lib/firebaseService';
 import {
   formatDate,
   formatTimeRemaining,
@@ -17,16 +20,28 @@ import {
 export default function QuestDetail() {
   const router = useRouter();
   const { id } = router.query;
+  const queryClient = useQueryClient();
 
   const { data: quest, isLoading, error } = useQuestDetail(id);
   const { data: questSubmissions } = useQuestSubmissions(quest?.questId); // Use blockchain quest ID for submissions
-  const { createSubmission, isCreating: isSubmitting } = useSubmissionManager();
+  const {
+    createSubmission,
+    selectWinners,
+    isCreating: isSubmitting,
+    isSelectingWinners,
+  } = useSubmissionManager();
   const { uploadFileToIPFS, uploading: isUploadingFiles } = usePinata();
+  const { address: currentUserAddress } = usePrivyEthers();
 
   const [activeTab, setActiveTab] = useState<
     'overview' | 'submissions' | 'discussion'
   >('overview');
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmationData, setConfirmationData] = useState<{
+    submissionId: string;
+    submissionTitle: string;
+  } | null>(null);
   const [isParticipating, setIsParticipating] = useState(false);
   const [isMobile, setIsMobile] = useState(true);
 
@@ -120,6 +135,97 @@ export default function QuestDetail() {
   const openSubmitModal = () => {
     setSubmissionForm({ title: '', description: '', files: [] });
     setShowSubmitModal(true);
+  };
+
+  // Check if current user is the quest creator
+  const isQuestCreator =
+    currentUserAddress &&
+    quest &&
+    currentUserAddress.toLowerCase() === quest.creator.address.toLowerCase();
+
+  // Debug logging for quest creator check (remove in production)
+  // console.log('🔍 Quest Creator Debug:', {
+  //   currentUserAddress,
+  //   questCreatorAddress: quest?.creator.address,
+  //   isQuestCreator,
+  //   hasWinners: quest?.hasWinners,
+  //   questStatus: quest?.status,
+  // });
+
+  // Handle winner selection
+  const handleSelectWinner = (
+    submissionId: string,
+    submissionTitle: string
+  ) => {
+    if (!quest || !quest.questId) {
+      alert('Quest data not available');
+      return;
+    }
+
+    // Show confirmation modal
+    setConfirmationData({ submissionId, submissionTitle });
+    setShowConfirmModal(true);
+  };
+
+  // Confirm winner selection
+  const confirmWinnerSelection = async () => {
+    if (!confirmationData || !quest?.questId) return;
+
+    setShowConfirmModal(false);
+
+    try {
+      // 1. Execute blockchain transaction
+      await selectWinners(quest.questId, [confirmationData.submissionId]);
+      console.log('✅ Blockchain winner selection completed');
+
+      // 2. Update Firebase - Mark submission as winner
+      const winningSubmission = questSubmissions?.find(
+        (s) => s.submissionId === confirmationData.submissionId
+      );
+
+      if (winningSubmission?.id) {
+        await firebaseService.updateSubmission(winningSubmission.id, {
+          status: 'winner',
+        });
+        console.log('✅ Submission marked as winner in Firebase');
+      }
+
+      // 3. Update Firebase - Mark quest as completed
+      if (quest.id) {
+        await firebaseService.updateQuest(quest.id, {
+          hasWinners: true,
+          status: 'Completed',
+          winners: [winningSubmission?.author.address || ''],
+        });
+        console.log('✅ Quest marked as completed in Firebase');
+      }
+
+      // 4. Invalidate queries to refresh UI
+      await queryClient.invalidateQueries({
+        queryKey: ['quest-detail'],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['submissions'],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['quests'],
+      });
+
+      alert(
+        'Winner selected successfully! 🎉\n\nRewards have been distributed and the quest is now complete.'
+      );
+    } catch (error) {
+      console.error('Error selecting winner:', error);
+      alert('Failed to select winner. Please try again.');
+    } finally {
+      setConfirmationData(null);
+    }
+  };
+
+  // Cancel winner selection
+  const cancelWinnerSelection = () => {
+    setShowConfirmModal(false);
+    setConfirmationData(null);
   };
 
   useEffect(() => {
@@ -420,6 +526,22 @@ export default function QuestDetail() {
                 >
                   {quest.winners.length} Winner
                   {quest.winners.length > 1 ? 's' : ''}
+                </span>
+              )}
+
+              {/* Quest Creator Badge */}
+              {isQuestCreator && (
+                <span
+                  style={{
+                    padding: '4px 8px',
+                    background: 'rgba(0, 255, 136, 0.1)',
+                    color: '#00ff88',
+                    fontSize: '11px',
+                    borderRadius: '4px',
+                    fontWeight: '600',
+                  }}
+                >
+                  👑 Quest Creator
                 </span>
               )}
             </div>
@@ -1197,6 +1319,47 @@ export default function QuestDetail() {
 
           {activeTab === 'submissions' && (
             <div>
+              {/* Quest Creator Info */}
+              {isQuestCreator &&
+                !quest.hasWinners &&
+                questSubmissions &&
+                questSubmissions.length > 0 && (
+                  <div
+                    style={{
+                      padding: '16px 20px',
+                      background: 'rgba(0, 255, 136, 0.05)',
+                      border: '1px solid rgba(0, 255, 136, 0.2)',
+                      borderRadius: '8px',
+                      marginBottom: '24px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      <span style={{ fontSize: '16px' }}>👑</span>
+                      <span
+                        style={{
+                          color: '#00ff88',
+                          fontWeight: '600',
+                          fontSize: '14px',
+                        }}
+                      >
+                        Quest Creator Controls
+                      </span>
+                    </div>
+                    <p style={{ color: '#ccc', fontSize: '13px', margin: 0 }}>
+                      You can select winners by clicking the "🏆 Select Winner"
+                      button on any submission. This will distribute rewards and
+                      mark the quest as complete.
+                    </p>
+                  </div>
+                )}
+
               {quest.hasWinners && (
                 <div
                   style={{
@@ -1229,7 +1392,7 @@ export default function QuestDetail() {
                       marginBottom: '12px',
                     }}
                   >
-                    {quest.winners.length} winner
+                    winner
                     {quest.winners.length > 1 ? 's have' : ' has'} been selected
                     for this quest.
                   </p>
@@ -1461,20 +1624,41 @@ export default function QuestDetail() {
                               style={{
                                 background: 'none',
                                 border: 'none',
-                                color: '#666',
+                                color: submission.previewUrl ? '#666' : '#444',
                                 fontSize: '14px',
-                                cursor: 'pointer',
+                                cursor: submission.previewUrl
+                                  ? 'pointer'
+                                  : 'not-allowed',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '6px',
                                 transition: 'color 0.2s ease',
+                                opacity: submission.previewUrl ? 1 : 0.5,
+                              }}
+                              onClick={() => {
+                                if (submission.previewUrl) {
+                                  window.open(
+                                    submission.previewUrl,
+                                    '_blank',
+                                    'noopener,noreferrer'
+                                  );
+                                }
                               }}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.color = quest.color;
+                                if (submission.previewUrl) {
+                                  e.currentTarget.style.color = quest.color;
+                                }
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.color = '#666';
+                                if (submission.previewUrl) {
+                                  e.currentTarget.style.color = '#666';
+                                }
                               }}
+                              title={
+                                submission.previewUrl
+                                  ? 'View submission details'
+                                  : 'No preview available'
+                              }
                             >
                               View Details
                               <svg
@@ -1488,6 +1672,70 @@ export default function QuestDetail() {
                                 <path d="M7 17L17 7M17 7H7M17 7V17" />
                               </svg>
                             </button>
+
+                            {/* Select Winner Button - Only visible to quest creator */}
+                            {isQuestCreator &&
+                              submission.status !== 'winner' &&
+                              !quest.hasWinners && (
+                                <button
+                                  disabled={isSelectingWinners}
+                                  onClick={() =>
+                                    handleSelectWinner(
+                                      submission.submissionId,
+                                      submission.content
+                                    )
+                                  }
+                                  style={{
+                                    padding: '8px 16px',
+                                    background: isSelectingWinners
+                                      ? '#333'
+                                      : `${quest.color}20`,
+                                    color: isSelectingWinners
+                                      ? '#666'
+                                      : quest.color,
+                                    border: `1px solid ${quest.color}40`,
+                                    borderRadius: '6px',
+                                    fontSize: '13px',
+                                    fontWeight: '600',
+                                    cursor: isSelectingWinners
+                                      ? 'not-allowed'
+                                      : 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    opacity: isSelectingWinners ? 0.5 : 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (!isSelectingWinners) {
+                                      e.currentTarget.style.background = `${quest.color}30`;
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (!isSelectingWinners) {
+                                      e.currentTarget.style.background = `${quest.color}20`;
+                                    }
+                                  }}
+                                >
+                                  {isSelectingWinners ? (
+                                    <>
+                                      <div
+                                        style={{
+                                          width: '12px',
+                                          height: '12px',
+                                          border: '2px solid #666',
+                                          borderTop: '2px solid transparent',
+                                          borderRadius: '50%',
+                                          animation: 'spin 1s linear infinite',
+                                        }}
+                                      />
+                                      Selecting...
+                                    </>
+                                  ) : (
+                                    <>🏆 Select Winner</>
+                                  )}
+                                </button>
+                              )}
                           </div>
                         </div>
 
@@ -2024,6 +2272,235 @@ export default function QuestDetail() {
         </div>
       )}
 
+      {/* Winner Selection Confirmation Modal */}
+      {showConfirmModal && confirmationData && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(10px)',
+            zIndex: 100,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+          onClick={cancelWinnerSelection}
+        >
+          <div
+            style={{
+              background: '#0a0a0a',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '16px',
+              padding: '40px',
+              maxWidth: '520px',
+              width: '100%',
+              position: 'relative',
+              textAlign: 'center',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                width: '80px',
+                height: '80px',
+                margin: '0 auto 24px',
+                background: `${quest.color}20`,
+                borderRadius: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '32px',
+              }}
+            >
+              🏆
+            </div>
+
+            <h2
+              style={{
+                fontSize: '24px',
+                fontWeight: '300',
+                marginBottom: '16px',
+                color: '#fff',
+              }}
+            >
+              Select Winner?
+            </h2>
+
+            <p
+              style={{
+                fontSize: '15px',
+                color: '#ccc',
+                lineHeight: '1.6',
+                marginBottom: '32px',
+              }}
+            >
+              Are you sure you want to select{' '}
+              <strong style={{ color: quest.color }}>
+                "{confirmationData.submissionTitle}"
+              </strong>{' '}
+              as the winner?
+            </p>
+
+            {/* Action Details */}
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                borderRadius: '12px',
+                padding: '24px',
+                marginBottom: '32px',
+                textAlign: 'left',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '13px',
+                  color: '#888',
+                  marginBottom: '12px',
+                  fontWeight: '600',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                This action will:
+              </div>
+              {[
+                `💰 Distribute the quest reward (${quest.reward})`,
+                '⭐ Award reputation points to the winner',
+                '🏆 Mark the quest as completed',
+                '🔒 Prevent new submissions',
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '8px 0',
+                    fontSize: '14px',
+                    color: '#ccc',
+                  }}
+                >
+                  <span style={{ fontSize: '16px' }}>•</span>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Warning */}
+            <div
+              style={{
+                background: 'rgba(255, 165, 0, 0.1)',
+                border: '1px solid rgba(255, 165, 0, 0.2)',
+                borderRadius: '8px',
+                padding: '12px 16px',
+                marginBottom: '32px',
+                fontSize: '13px',
+                color: '#ffb366',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <span>⚠️</span>
+              <span>This action cannot be undone</span>
+            </div>
+
+            {/* Action Buttons */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '16px',
+                justifyContent: 'center',
+              }}
+            >
+              <button
+                onClick={cancelWinnerSelection}
+                style={{
+                  flex: 1,
+                  padding: '14px 24px',
+                  background: 'transparent',
+                  color: '#999',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor =
+                    'rgba(255, 255, 255, 0.2)';
+                  e.currentTarget.style.color = '#ccc';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor =
+                    'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.color = '#999';
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={confirmWinnerSelection}
+                disabled={isSelectingWinners}
+                style={{
+                  flex: 1,
+                  padding: '14px 24px',
+                  background: isSelectingWinners ? '#333' : quest.color,
+                  color: isSelectingWinners ? '#666' : '#000',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: isSelectingWinners ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease',
+                  opacity: isSelectingWinners ? 0.5 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelectingWinners) {
+                    e.currentTarget.style.background = `${quest.color}dd`;
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelectingWinners) {
+                    e.currentTarget.style.background = quest.color;
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }
+                }}
+              >
+                {isSelectingWinners ? (
+                  <>
+                    <div
+                      style={{
+                        width: '16px',
+                        height: '16px',
+                        border: '2px solid #666',
+                        borderTop: '2px solid transparent',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite',
+                      }}
+                    />
+                    Selecting...
+                  </>
+                ) : (
+                  <>🏆 Select Winner</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
         @keyframes shimmer {
           0% {
@@ -2031,6 +2508,15 @@ export default function QuestDetail() {
           }
           100% {
             transform: translateX(200%);
+          }
+        }
+
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
           }
         }
       `}</style>

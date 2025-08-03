@@ -126,6 +126,25 @@ Each demo script demonstrates different aspects of the Quest Board platform:
 - ⭐ +20 reputation points per successful submission
 - 💡 Perfect for hackathons and innovation challenges
 
+### 8. Team Collaboration (`8-multiCreatorDemo.ts`)
+
+**Duration**: ~10 minutes  
+**Features Demonstrated**:
+
+- Two creators collaborating as a team on one quest
+- Combined skill sets for full-stack development
+- Shared submission with collaborator system
+- Team-based reward distribution
+- Collaborative workflow and planning
+
+**Key Highlights**:
+
+- 🤝 Frontend Wizard + Blockchain Ninja team collaboration
+- 👥 Two creators working on one shared submission
+- 🎯 Full-stack development combining frontend + smart contracts
+- 💰 Shared reward distribution among team members
+- ⭐ Team-based reputation building
+
 ## 🚀 Running the Demos
 
 ### Prerequisites
@@ -148,6 +167,7 @@ npm run demo:submissions      # Work submission and review
 npm run demo:rewards          # Reward distribution
 npm run demo:end-to-end       # Complete workflow
 npm run demo:solo-creator     # Featured: Solo creator challenge
+npm run demo:multi-creator    # Team collaboration
 
 # Quick commands
 npm run demo:featured         # Run the featured solo creator demo
