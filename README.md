@@ -46,16 +46,16 @@ Avalon addresses these challenges through a comprehensive decentralized platform
 
 ### Core Value Propositions
 
-**🎯 Quest-Based Creative Economy**
+- **🎯 Quest-Based Creative Economy**: 
 Transform creative projects into structured "quests" with clear requirements, deadlines, and bounties. Whether you need a logo design, video editing, or complex collaborative projects, Avalon provides the infrastructure to manage it all.
 
-**🤝 Seamless Collaboration**
+- **🤝 Seamless Collaboration**
 Built-in team formation and management tools allow creators to find partners, form teams, and split rewards automatically. Our collaboration manager handles everything from initial invitations to final compensation distribution.
 
-**💎 Transparent Reputation System**
+- **💎 Transparent Reputation System**
 Every interaction, submission, and collaboration is recorded on-chain, building immutable reputation profiles that help creators showcase their skills and reliability while helping clients make informed decisions.
 
-**⚡ Instant, Fair Compensation**
+- **⚡ Instant, Fair Compensation**
 Smart contracts automate payment distribution based on predefined rules. No more waiting for payments or disputes over compensation - everything is transparent and executed automatically.
 
 ## Why Etherlink?
