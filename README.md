@@ -2,7 +2,7 @@
 
 **The Decentralized Creative Economy Platform**
 
-Avalon is a blockchain-powered platform that revolutionizes how creative professionals collaborate, compete, and get compensated for their work. Built on Etherlink (Tezos Layer 2), Avalon connects creators, clients, and collaborators in a trustless, transparent ecosystem where creative challenges become opportunities for earning and growth.
+Avalon is am Etherlink-powered platform that revolutionizes how creative professionals collaborate, compete, and get compensated for their work. Built on Etherlink (Tezos Layer 2), Avalon connects creators, clients, and collaborators in a trustless, transparent ecosystem where creative challenges become opportunities for earning and growth.
 
 ## Table of Contents
 
@@ -18,12 +18,7 @@ Avalon is a blockchain-powered platform that revolutionizes how creative profess
   - [Quick Start](#quick-start)
   - [Demo Scripts](#demo-scripts)
 - [Use Cases](#use-cases)
-- [Roadmap](#roadmap)
 - [Contributing](#contributing)
-- [Security](#security)
-- [License](#license)
-- [Community & Support](#community--support)
-- [Acknowledgments](#acknowledgments)
 
 ## The Problem
 
@@ -190,32 +185,6 @@ npm run demo:multi-creator
 - **Execution**: Complete work with transparent milestone tracking
 - **Growth**: Build on-chain reputation for future opportunities
 
-## Roadmap
-
-### Phase 1: Foundation (Current)
-- ✅ Core smart contract deployment
-- ✅ Basic frontend interface
-- ✅ Etherlink integration
-- ✅ Team collaboration features
-
-### Phase 2: Enhancement (Q2 2024)
-- 🔄 Advanced reputation algorithms
-- 🔄 Mobile application
-- 🔄 Enhanced file storage with Filecoin
-- 🔄 Cross-chain bridge integration
-
-### Phase 3: Ecosystem (Q3 2024)
-- 📅 DAO governance implementation
-- 📅 Creative NFT marketplace integration
-- 📅 AI-powered quest matching
-- 📅 Enterprise partnership tools
-
-### Phase 4: Scale (Q4 2024)
-- 📅 Multi-language support
-- 📅 Advanced analytics dashboard
-- 📅 Integration with major creative platforms
-- 📅 Educational partnership programs
-
 ## Contributing
 
 We welcome contributions from the community! Here's how you can get involved:
@@ -227,50 +196,6 @@ We welcome contributions from the community! Here's how you can get involved:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-### Bug Reports
-Please use GitHub Issues to report bugs. Include:
-- Clear description of the issue
-- Steps to reproduce
-- Expected vs actual behavior
-- Screenshots if applicable
-
-### Feature Requests
-We love hearing about new ideas! Please use GitHub Discussions to:
-- Propose new features
-- Discuss implementation approaches
-- Share use cases and requirements
-
-## Security
-
-Security is paramount in handling creative work and compensation. Our approach includes:
-
-- **Smart Contract Audits**: All contracts undergo rigorous security audits
-- **Multi-signature Controls**: Critical functions require multiple confirmations
-- **Emergency Pause Mechanisms**: Ability to pause contracts in case of issues
-- **Gradual Rollout**: New features are tested extensively before mainnet deployment
-
-### Bug Bounty Program
-We run an ongoing bug bounty program. Security researchers can report vulnerabilities through our responsible disclosure process. Contact security@avalon.dev for details.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Community & Support
-
-- **Website**: [avalon.dev](https://avalon.dev)
-- **Discord**: [Join our community](https://discord.gg/avalon)
-- **Twitter**: [@AvalonQuests](https://twitter.com/AvalonQuests)
-- **Documentation**: [docs.avalon.dev](https://docs.avalon.dev)
-- **Support**: support@avalon.dev
-
-## Acknowledgments
-
-- **Etherlink Team**: For providing the infrastructure that makes Avalon possible
-- **Tezos Foundation**: For supporting innovative applications in the creative space
-- **OpenZeppelin**: For battle-tested smart contract libraries
-- **The Graph**: For efficient blockchain data indexing
-- **IPFS/Filecoin**: For decentralized storage solutions
 
 ---
 
