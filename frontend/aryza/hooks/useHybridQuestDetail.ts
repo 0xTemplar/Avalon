@@ -90,15 +90,29 @@ export const useHybridQuestDetail = (id: string | string[] | undefined) => {
 
       if (quest) {
         // Load submissions for this quest
-        const submissions = await firebaseService.getSubmissionsByQuest(
-          formattedId
-        );
-        const questDetail = convertFirebaseToUIQuestDetail(quest, submissions);
-        setFirebaseQuest(questDetail);
-        setDataSource('firebase');
-        console.log(
-          `📊 Firebase loaded quest ${formattedId} with ${submissions.length} submissions`
-        );
+        try {
+          const submissions = await firebaseService.getSubmissionsByQuest(
+            formattedId
+          );
+          const questDetail = convertFirebaseToUIQuestDetail(
+            quest,
+            submissions
+          );
+          setFirebaseQuest(questDetail);
+          setDataSource('firebase');
+          console.log(
+            `📊 Firebase loaded quest ${formattedId} with ${submissions.length} submissions`
+          );
+        } catch (submissionError) {
+          console.warn(
+            'Error loading submissions, showing quest without submissions:',
+            submissionError
+          );
+          // Show quest without submissions if submission loading fails
+          const questDetail = convertFirebaseToUIQuestDetail(quest, []);
+          setFirebaseQuest(questDetail);
+          setDataSource('firebase');
+        }
       } else {
         setFirebaseQuest(null);
         setDataSource('subgraph');

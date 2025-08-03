@@ -71,7 +71,12 @@ export interface FirebaseSubmission {
 
 class FirebaseService {
   // Quest operations
-  async createQuest(quest: Omit<FirebaseQuest, 'id' | 'createdAtTimestamp' | 'updatedAtTimestamp'>): Promise<string> {
+  async createQuest(
+    quest: Omit<
+      FirebaseQuest,
+      'id' | 'createdAtTimestamp' | 'updatedAtTimestamp'
+    >
+  ): Promise<string> {
     try {
       const now = Timestamp.now();
       const questData: Omit<FirebaseQuest, 'id'> = {
@@ -89,7 +94,10 @@ class FirebaseService {
     }
   }
 
-  async updateQuest(questId: string, updates: Partial<FirebaseQuest>): Promise<void> {
+  async updateQuest(
+    questId: string,
+    updates: Partial<FirebaseQuest>
+  ): Promise<void> {
     try {
       const questRef = doc(db, 'quests', questId);
       await updateDoc(questRef, {
@@ -107,7 +115,7 @@ class FirebaseService {
     try {
       const questRef = doc(db, 'quests', questId);
       const questSnap = await getDoc(questRef);
-      
+
       if (questSnap.exists()) {
         return { id: questSnap.id, ...questSnap.data() } as FirebaseQuest;
       }
@@ -118,7 +126,9 @@ class FirebaseService {
     }
   }
 
-  async getQuestByBlockchainId(blockchainQuestId: string): Promise<FirebaseQuest | null> {
+  async getQuestByBlockchainId(
+    blockchainQuestId: string
+  ): Promise<FirebaseQuest | null> {
     try {
       const q = query(
         collection(db, 'quests'),
@@ -126,7 +136,7 @@ class FirebaseService {
         limit(1)
       );
       const querySnapshot = await getDocs(q);
-      
+
       if (!querySnapshot.empty) {
         const doc = querySnapshot.docs[0];
         return { id: doc.id, ...doc.data() } as FirebaseQuest;
@@ -145,38 +155,47 @@ class FirebaseService {
     searchQuery?: string
   ): Promise<FirebaseQuest[]> {
     try {
-      let q = query(
-        collection(db, 'quests'),
-        orderBy('createdAtTimestamp', 'desc'),
-        limit(limitCount)
-      );
+      let q;
 
       if (category && category !== 'All') {
+        // Simple query with category filter only (no orderBy to avoid composite index)
         q = query(
           collection(db, 'quests'),
           where('category', '==', category),
-          orderBy('createdAtTimestamp', 'desc'),
-          limit(limitCount)
+          limit(limitCount * 2) // Get more docs to account for client-side sorting
         );
+      } else {
+        // Simple query without any compound constraints
+        q = query(collection(db, 'quests'), limit(limitCount * 2));
       }
 
       const querySnapshot = await getDocs(q);
-      let quests = querySnapshot.docs.map(doc => ({
+      let quests = querySnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       })) as FirebaseQuest[];
+
+      // Sort on client side by createdAtTimestamp (most recent first)
+      quests = quests.sort(
+        (a, b) =>
+          b.createdAtTimestamp.toMillis() - a.createdAtTimestamp.toMillis()
+      );
+
+      // Apply limit after sorting
+      quests = quests.slice(0, limitCount);
 
       // Client-side filtering for difficulty and search
       if (difficulty && difficulty !== 'All') {
-        quests = quests.filter(quest => quest.difficulty === difficulty);
+        quests = quests.filter((quest) => quest.difficulty === difficulty);
       }
 
       if (searchQuery) {
         const search = searchQuery.toLowerCase();
-        quests = quests.filter(quest => 
-          quest.title.toLowerCase().includes(search) ||
-          quest.description.toLowerCase().includes(search) ||
-          quest.tags.some(tag => tag.toLowerCase().includes(search))
+        quests = quests.filter(
+          (quest) =>
+            quest.title.toLowerCase().includes(search) ||
+            quest.description.toLowerCase().includes(search) ||
+            quest.tags.some((tag) => tag.toLowerCase().includes(search))
         );
       }
 
@@ -199,16 +218,21 @@ class FirebaseService {
     );
 
     return onSnapshot(q, (querySnapshot) => {
-      const quests = querySnapshot.docs.map(doc => ({
+      const quests = querySnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       })) as FirebaseQuest[];
       callback(quests);
     });
   }
 
   // Submission operations
-  async createSubmission(submission: Omit<FirebaseSubmission, 'id' | 'createdAtTimestamp' | 'updatedAtTimestamp'>): Promise<string> {
+  async createSubmission(
+    submission: Omit<
+      FirebaseSubmission,
+      'id' | 'createdAtTimestamp' | 'updatedAtTimestamp'
+    >
+  ): Promise<string> {
     try {
       const now = Timestamp.now();
       const submissionData: Omit<FirebaseSubmission, 'id'> = {
@@ -217,7 +241,10 @@ class FirebaseService {
         updatedAtTimestamp: now,
       };
 
-      const docRef = await addDoc(collection(db, 'submissions'), submissionData);
+      const docRef = await addDoc(
+        collection(db, 'submissions'),
+        submissionData
+      );
       console.log('Submission added to Firebase with ID:', docRef.id);
       return docRef.id;
     } catch (error) {
@@ -228,24 +255,33 @@ class FirebaseService {
 
   async getSubmissionsByQuest(questId: string): Promise<FirebaseSubmission[]> {
     try {
+      // Simple query without orderBy to avoid composite index requirement
       const q = query(
         collection(db, 'submissions'),
-        where('questId', '==', questId),
-        orderBy('createdAtTimestamp', 'desc')
+        where('questId', '==', questId)
       );
-      
+
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
+      const submissions = querySnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       })) as FirebaseSubmission[];
+
+      // Sort on client side by createdAtTimestamp (most recent first)
+      return submissions.sort(
+        (a, b) =>
+          b.createdAtTimestamp.toMillis() - a.createdAtTimestamp.toMillis()
+      );
     } catch (error) {
       console.error('Error getting submissions from Firebase:', error);
       throw error;
     }
   }
 
-  async updateSubmission(submissionId: string, updates: Partial<FirebaseSubmission>): Promise<void> {
+  async updateSubmission(
+    submissionId: string,
+    updates: Partial<FirebaseSubmission>
+  ): Promise<void> {
     try {
       const submissionRef = doc(db, 'submissions', submissionId);
       await updateDoc(submissionRef, {
@@ -271,10 +307,15 @@ class FirebaseService {
   }
 
   // Sync with blockchain data
-  async syncQuestFromBlockchain(blockchainQuest: any, txHash?: string): Promise<void> {
+  async syncQuestFromBlockchain(
+    blockchainQuest: any,
+    txHash?: string
+  ): Promise<void> {
     try {
-      const existingQuest = await this.getQuestByBlockchainId(blockchainQuest.questId);
-      
+      const existingQuest = await this.getQuestByBlockchainId(
+        blockchainQuest.questId
+      );
+
       if (existingQuest) {
         // Update existing quest
         await this.updateQuest(existingQuest.id!, {
