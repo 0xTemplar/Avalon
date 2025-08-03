@@ -11,7 +11,7 @@ Avalon is an Etherlink-powered platform that revolutionizes how creative profess
 
 - [The Problem](#the-problem)
 - [Our Solution](#our-solution)
-- [Why Etherlink?](#why-etherlink)
+- [Use Cases](#use-cases)
 - [Technical Architecture](#technical-architecture)
   - [Smart Contract Layer](#smart-contract-layer)
   - [Frontend Application](#frontend-application)
@@ -20,7 +20,6 @@ Avalon is an Etherlink-powered platform that revolutionizes how creative profess
   - [Prerequisites](#prerequisites)
   - [Quick Start](#quick-start)
   - [Demo Scripts](#demo-scripts)
-- [Use Cases](#use-cases)
 - [Contributing](#contributing)
 
 ## The Problem
@@ -58,15 +57,23 @@ Every interaction, submission, and collaboration is recorded on-chain, building 
 - **⚡ Instant, Fair Compensation**
 Smart contracts automate payment distribution based on predefined rules. No more waiting for payments or disputes over compensation - everything is transparent and executed automatically.
 
-## Why Etherlink?
+## Use Cases
 
-Avalon is built on **Etherlink**, Tezos's EVM-compatible Layer 2 solution, providing unique advantages for the creative economy:
+### Real-World Example: [Etherlink Liquidity Campaign](https://avalon-etherlink-3yg7.vercel.app/quest/ma9fGWiboHVRWNGDg4bX)
 
-- **Low Transaction Costs**: Creators can participate in quests without worrying about prohibitive gas fees
-- **Fast Finality**: Quick transaction confirmation enables smooth user experiences
-- **Ethereum Compatibility**: Full EVM compatibility allows us to leverage existing Ethereum tooling and infrastructure
-- **Energy Efficiency**: Tezos's proof-of-stake consensus aligns with the environmental consciousness of many creative professionals
-- **Institutional Adoption**: Tezos's growing adoption in the arts and culture space makes it a natural fit for creative applications
+**Scenario**: Design quest for Etherlink liquidity provision campaign on AppleFarm
+- **Quest Type**: Creative competition for promotional materials
+- **Bounty**: 100 XTZ distributed among top submissions
+- **Participants**: Designers from the Avalon community
+- **Deliverables**: Banner designs, social media graphics, and promotional materials
+- **Results**: High-quality designs delivered within 72 hours
+
+**Featured Submissions:**
+- [Explore Defi On Etherlink](https://gateway.pinata.cloud/ipfs/bafkreiab6xdhakzqckl7s37q6glch6ihuufgtjry2jgnviwu47tbecczuy) - Modern gradient design with animated elements
+- [AppleFarm Liquidity Campaign](https://gateway.pinata.cloud/ipfs/bafkreiadt37wn6d5oi7yaa6rpfu22iyndai3ds7cvxd5c6uiq2jkdprebu) - Campaign promotion design
+
+This real campaign demonstrated Avalon's ability to rapidly mobilize creative talent for time-sensitive marketing needs while ensuring fair compensation and quality outcomes.
+
 
 ## Technical Architecture
 
@@ -170,23 +177,6 @@ cd contracts
 npm run demo:solo-creator
 npm run demo:multi-creator
 ```
-
-## Use Cases
-
-### Real-World Example: Etherlink Liquidity Campaign
-
-**Scenario**: Design quest for Etherlink liquidity provision campaign on AppleFarm
-- **Quest Type**: Creative competition for promotional materials
-- **Bounty**: 100 XTZ distributed among top submissions
-- **Participants**: Designers from the Avalon community
-- **Deliverables**: Banner designs, social media graphics, and promotional materials
-- **Results**: High-quality designs delivered within 72 hours
-
-**Featured Submissions:**
-- [Etherlink Liquid Staking Banner Design](https://avalon.dev/quest/eth-liquidity-001/submission/creative-banner-v2) - Modern gradient design with animated elements
-- [AppleFarm Campaign Graphics Pack](https://avalon.dev/quest/eth-liquidity-001/submission/social-media-pack) - Complete social media asset collection
-
-This real campaign demonstrated Avalon's ability to rapidly mobilize creative talent for time-sensitive marketing needs while ensuring fair compensation and quality outcomes.
 
 ### Individual Freelancers
 **Scenario**: A graphic designer looking for consistent work
