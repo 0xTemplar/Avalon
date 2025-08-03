@@ -171,7 +171,7 @@ export default function QuestGrid({
                   <Avvvatars
                     size={56}
                     style="shape"
-                    value={quest.creator.username}
+                    value={quest.creator.avatar || quest.creator.username}
                   />
                 </div>
               </div>
@@ -357,6 +357,10 @@ export default function QuestGrid({
                 lineHeight: '1.6',
                 flex: 1,
                 overflow: 'hidden',
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical',
+                textOverflow: 'ellipsis',
               }}
             >
               {quest.description}

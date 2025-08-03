@@ -3,13 +3,20 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Avvvatars from 'avvvatars-react';
-import { useQuestDetail, type QuestDetail } from '../../hooks/useQuestDetail';
+import { useHybridQuestDetail } from '../../hooks/useHybridQuestDetail';
+import { type QuestDetail } from '../../hooks/useQuestDetail';
 
 export default function QuestDetail() {
   const router = useRouter();
   const { id } = router.query;
 
-  const { data: quest, isLoading, error } = useQuestDetail(id);
+  const {
+    data: quest,
+    isLoading,
+    error,
+    dataSource,
+    stats,
+  } = useHybridQuestDetail(id);
   const [activeTab, setActiveTab] = useState<
     'overview' | 'submissions' | 'discussion'
   >('overview');
@@ -58,6 +65,8 @@ export default function QuestDetail() {
 
   // Handle error state
   if (error) {
+    const isQuestNotFoundError = error.message.includes('Quest not found');
+
     return (
       <div
         style={{
@@ -67,26 +76,99 @@ export default function QuestDetail() {
           alignItems: 'center',
           justifyContent: 'center',
           flexDirection: 'column',
-          gap: '16px',
+          gap: '24px',
+          padding: '40px',
+          textAlign: 'center',
         }}
       >
-        <div style={{ color: '#ff0055', fontSize: '18px' }}>
-          Error loading quest
+        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
+
+        <div style={{ color: '#ff0055', fontSize: '24px', fontWeight: '300' }}>
+          {isQuestNotFoundError ? 'Quest Not Found' : 'Error Loading Quest'}
         </div>
-        <div style={{ color: '#666', fontSize: '14px' }}>{error.message}</div>
-        <button
-          onClick={() => router.push('/home')}
+
+        <div
           style={{
-            padding: '12px 24px',
-            background: '#333',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
+            color: '#999',
+            fontSize: '16px',
+            maxWidth: '600px',
+            lineHeight: '1.6',
           }}
         >
-          Back to Quests
-        </button>
+          {isQuestNotFoundError ? (
+            <>
+              Quest #{id} couldn&apos;t be found. This might happen because:
+              <br />
+              <br />
+              • The quest was created before our recent data migration
+              <br />
+              • The quest ID doesn&apos;t exist
+              <br />• There&apos;s a temporary sync issue between our data
+              sources
+            </>
+          ) : (
+            error.message
+          )}
+        </div>
+
+        {isQuestNotFoundError && (
+          <div
+            style={{
+              background: 'rgba(0, 255, 136, 0.1)',
+              border: '1px solid rgba(0, 255, 136, 0.3)',
+              padding: '16px 24px',
+              borderRadius: '8px',
+              color: '#00ff88',
+              fontSize: '14px',
+              maxWidth: '500px',
+            }}
+          >
+            💡 <strong>Good news:</strong> New quests are now synced in
+            real-time! Try creating a new quest to experience instant updates.
+          </div>
+        )}
+
+        <div
+          style={{
+            display: 'flex',
+            gap: '16px',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+          }}
+        >
+          <button
+            onClick={() => router.push('/home')}
+            style={{
+              padding: '12px 24px',
+              background: '#333',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+            }}
+          >
+            ← Back to Quests
+          </button>
+
+          {isQuestNotFoundError && (
+            <button
+              onClick={() => router.push('/home')}
+              style={{
+                padding: '12px 24px',
+                background: '#00ff88',
+                color: '#000',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+              }}
+            >
+              Create New Quest →
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -335,6 +417,26 @@ export default function QuestDetail() {
               >
                 {quest.title}
               </h1>
+
+              {/* Data Source Indicator */}
+              <div
+                style={{
+                  textAlign: 'center',
+                  marginBottom: '16px',
+                  opacity: 0.6,
+                  fontSize: '13px',
+                }}
+              >
+                {dataSource === 'firebase' ? (
+                  <span style={{ color: '#00ff88' }}>
+                    🔥 Real-time Firebase data
+                  </span>
+                ) : stats.usingFallback ? (
+                  <span style={{ color: '#ff8c00' }}>📊 Subgraph fallback</span>
+                ) : (
+                  <span style={{ color: '#888' }}>📈 Hybrid mode</span>
+                )}
+              </div>
 
               {/* Description */}
               <p

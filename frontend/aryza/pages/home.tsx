@@ -13,16 +13,24 @@ import BackgroundElements from '../components/ui/BackgroundElements';
 import GlobalStyles from '../components/ui/GlobalStyles';
 
 // Hook imports
-import { useSubgraphQuests } from '../hooks/useSubgraphQuests';
+import { useHybridQuests } from '../hooks/useHybridQuests';
 
 export default function Home() {
-  // Fetch real quests from subgraph
+  // Fetch quests using hybrid approach (Firebase + Subgraph fallback)
   const {
-    data: subgraphQuests,
+    data: questsData,
     isLoading: isLoadingQuests,
     error: questsError,
     refetch: refetchQuests,
-  } = useSubgraphQuests(20, 'createdAt', 'desc');
+    dataSource,
+    stats,
+  } = useHybridQuests({
+    limitCount: 20,
+    orderBy: 'createdAt',
+    orderDirection: 'desc',
+    useRealTime: true,
+    fallbackToSubgraph: true,
+  });
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -45,7 +53,6 @@ export default function Home() {
   const [isMobile, setIsMobile] = useState(true);
 
   useEffect(() => {
-    // Set mobile state
     setIsMobile(window.innerWidth <= 768);
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -86,14 +93,20 @@ export default function Home() {
     );
   };
 
-  // Use subgraph data or empty array if loading/error
-  const questsData = subgraphQuests || [];
+  // Quest data comes directly from hybrid hook
+
+  // IDs to hide from the quest list
+  const hiddenQuestIds = ['1', '4', '7', '3', '6', '8'];
 
   // Filter and sort quests
   let filteredQuests =
     selectedCategory === 'All'
-      ? questsData
-      : questsData.filter((quest) => quest.category === selectedCategory);
+      ? (questsData || []).filter((quest) => !hiddenQuestIds.includes(quest.id))
+      : (questsData || []).filter(
+          (quest) =>
+            quest.category === selectedCategory &&
+            !hiddenQuestIds.includes(quest.id)
+        );
 
   if (selectedDifficulty !== 'All') {
     filteredQuests = filteredQuests.filter(
@@ -177,6 +190,30 @@ export default function Home() {
         viewMode={viewMode}
         setViewMode={setViewMode}
       />
+
+      {/* Data Source Indicator */}
+      {(dataSource === 'firebase' || stats.firebaseCount > 0) && (
+        <div
+          style={{
+            textAlign: 'center',
+            margin: '20px 0 10px',
+            opacity: 0.7,
+            fontSize: '14px',
+          }}
+        >
+          {dataSource === 'firebase' ? (
+            <span style={{ color: '#00ff88' }}>
+              🔥 Real-time data ({stats.firebaseCount} quests from Firebase)
+            </span>
+          ) : stats.usingFallback ? (
+            <span style={{ color: '#ff8c00' }}>
+              📊 Subgraph fallback ({stats.subgraphCount} quests)
+            </span>
+          ) : (
+            <span style={{ color: '#888' }}>📈 Hybrid mode active</span>
+          )}
+        </div>
+      )}
 
       <QuestSection
         quests={filteredQuests}

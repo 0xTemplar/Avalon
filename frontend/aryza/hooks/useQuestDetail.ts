@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { gql, request } from 'graphql-request';
 import { ethers } from 'ethers';
-import Avvvatars from 'avvvatars-react';
 
 interface SubgraphQuestDetail {
   questId: string;
@@ -127,7 +126,7 @@ const QUEST_DETAIL_QUERY = gql`
 `;
 
 const SUBGRAPH_URL =
-  'https://api.studio.thegraph.com/query/117682/first/version/latest';
+  'https://api.studio.thegraph.com/query/117682/first/v0.0.8';
 const SUBGRAPH_HEADERS = {
   Authorization: 'Bearer 8bc64f5ab2554c33e35df2b552b79818',
 };
@@ -462,9 +461,9 @@ export const useQuestDetail = (id: string | string[] | undefined) => {
 
   const formattedId = formatId(questId);
 
-  return useQuery<QuestDetail>({
+  return useQuery<QuestDetail | null>({
     queryKey: ['quest-detail', formattedId],
-    queryFn: async (): Promise<QuestDetail> => {
+    queryFn: async (): Promise<QuestDetail | null> => {
       if (!formattedId) {
         throw new Error('Quest ID is required');
       }
@@ -478,7 +477,8 @@ export const useQuestDetail = (id: string | string[] | undefined) => {
         );
 
         if (!response.quest) {
-          throw new Error('Quest not found');
+          console.log(`Quest ${formattedId} not found in subgraph`);
+          return null;
         }
 
         return transformQuestDetail(response.quest);

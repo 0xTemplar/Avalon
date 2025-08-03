@@ -6,22 +6,8 @@ import { Quest } from '../components/quests/types';
 interface SubgraphQuest {
   questId: string;
   title: string;
-  description?: string;
-  metadataURI?: string;
-  questType: 'INDIVIDUAL' | 'COLLABORATIVE' | 'COMPETITION';
   bountyAmount: string;
   status: 'CREATED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
-  maxParticipants: string;
-  maxCollaborators: string;
-  submissionDeadline: string;
-  reviewDeadline: string;
-  requiresApproval: boolean;
-  tags: string[];
-  skillsRequired: string[];
-  minReputation: string;
-  kycRequired: boolean;
-  allowedFileTypes: string[];
-  maxFileSize: string;
   participantCount: string;
   submissionCount: string;
   creator: {
@@ -40,22 +26,8 @@ const QUESTS_QUERY = gql`
     quests(first: $first, orderBy: $orderBy, orderDirection: $orderDirection) {
       questId
       title
-      description
-      metadataURI
-      questType
       bountyAmount
       status
-      maxParticipants
-      maxCollaborators
-      submissionDeadline
-      reviewDeadline
-      requiresApproval
-      tags
-      skillsRequired
-      minReputation
-      kycRequired
-      allowedFileTypes
-      maxFileSize
       participantCount
       submissionCount
       creator {
@@ -68,7 +40,7 @@ const QUESTS_QUERY = gql`
 `;
 
 const SUBGRAPH_URL =
-  'https://api.studio.thegraph.com/query/117682/first/version/latest';
+  'https://api.studio.thegraph.com/query/117682/first/v0.0.8';
 const SUBGRAPH_HEADERS = {
   Authorization: 'Bearer 8bc64f5ab2554c33e35df2b552b79818',
 };
@@ -131,21 +103,6 @@ const calculateDeadline = (createdAt: string): string => {
   return 'Less than 1 hour left';
 };
 
-const calculateDeadlineFromTimestamp = (deadlineTimestamp: string): string => {
-  const deadline = parseInt(deadlineTimestamp);
-  const now = Math.floor(Date.now() / 1000);
-  const timeLeft = deadline - now;
-
-  if (timeLeft <= 0) return 'Expired';
-
-  const daysLeft = Math.floor(timeLeft / (24 * 60 * 60));
-  const hoursLeft = Math.floor((timeLeft % (24 * 60 * 60)) / (60 * 60));
-
-  if (daysLeft > 0) return `${daysLeft} day${daysLeft > 1 ? 's' : ''} left`;
-  if (hoursLeft > 0) return `${hoursLeft} hour${hoursLeft > 1 ? 's' : ''} left`;
-  return 'Less than 1 hour left';
-};
-
 const getCategoryColor = (category: string): string => {
   const colors = {
     Design: '#00ff88',
@@ -161,39 +118,16 @@ const getCategoryColor = (category: string): string => {
 
 // Transform subgraph quest to UI quest
 const transformQuest = (subgraphQuest: SubgraphQuest): Quest => {
-  // Use real data from subgraph when available, fallback to inferred data
-  const category =
-    subgraphQuest.tags?.length > 0
-      ? subgraphQuest.tags[0] === 'Development'
-        ? 'Development'
-        : subgraphQuest.tags[0] === 'Design'
-        ? 'Design'
-        : subgraphQuest.tags[0] === 'Writing'
-        ? 'Writing'
-        : subgraphQuest.tags[0] === 'Music'
-        ? 'Music'
-        : subgraphQuest.tags[0] === 'Animation'
-        ? 'Animation'
-        : subgraphQuest.tags[0] === 'NFT'
-        ? 'NFT'
-        : 'General'
-      : inferCategory(subgraphQuest);
-
+  const category = inferCategory(subgraphQuest);
   const difficulty = inferDifficulty(subgraphQuest.bountyAmount);
   const status = mapStatus(subgraphQuest.status);
-
-  // Use real deadline from subgraph or calculate from creation time
-  const deadline = subgraphQuest.submissionDeadline
-    ? calculateDeadlineFromTimestamp(subgraphQuest.submissionDeadline)
-    : calculateDeadline(subgraphQuest.createdAt);
-
+  const deadline = calculateDeadline(subgraphQuest.createdAt);
   const color = getCategoryColor(category);
 
   return {
     id: subgraphQuest.questId,
     title: subgraphQuest.title,
     description:
-      subgraphQuest.description ||
       'Complete this quest to earn rewards and build your reputation in the community.',
     category,
     reward: `${parseFloat(
@@ -210,7 +144,7 @@ const transformQuest = (subgraphQuest: SubgraphQuest): Quest => {
     deadline,
     difficulty,
     status,
-    tags: subgraphQuest.tags?.length > 0 ? subgraphQuest.tags : [category],
+    tags: [category],
     color,
   };
 };
