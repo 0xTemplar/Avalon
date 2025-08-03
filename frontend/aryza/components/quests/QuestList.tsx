@@ -1,5 +1,6 @@
 import React from 'react';
 import { Quest } from './types';
+import { formatTimeRemaining } from '../../lib/dateUtils';
 
 interface QuestListProps {
   quests: Quest[];
@@ -119,7 +120,7 @@ export default function QuestList({
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '14px', color: quest.color }}>
-                {quest.deadline}
+                {formatTimeRemaining(quest.deadline)}
               </div>
             </div>
             <button

@@ -2,6 +2,7 @@ import React from 'react';
 import { useRouter } from 'next/router';
 import { Quest } from './types';
 import Avvvatars from 'avvvatars-react';
+import { formatTimeRemaining } from '../../lib/dateUtils';
 
 interface QuestGridProps {
   quests: Quest[];
@@ -473,7 +474,7 @@ export default function QuestGrid({
                   }}
                 >
                   {quest.participants} PARTICIPANTS •{' '}
-                  {quest.deadline.toUpperCase()}
+                  {formatTimeRemaining(quest.deadline).toUpperCase()}
                 </div>
               </div>
 

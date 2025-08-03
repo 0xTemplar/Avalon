@@ -3,20 +3,18 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Avvvatars from 'avvvatars-react';
-import { useHybridQuestDetail } from '../../hooks/useHybridQuestDetail';
-import { type QuestDetail } from '../../hooks/useQuestDetail';
+import { useQuestDetail, type QuestDetail } from '../../hooks/useQuestDetail';
+import {
+  formatDate,
+  formatTimeRemaining,
+  formatRelativeTime,
+} from '../../lib/dateUtils';
 
 export default function QuestDetail() {
   const router = useRouter();
   const { id } = router.query;
 
-  const {
-    data: quest,
-    isLoading,
-    error,
-    dataSource,
-    stats,
-  } = useHybridQuestDetail(id);
+  const { data: quest, isLoading, error } = useQuestDetail(id);
   const [activeTab, setActiveTab] = useState<
     'overview' | 'submissions' | 'discussion'
   >('overview');
@@ -401,7 +399,7 @@ export default function QuestDetail() {
                     fontFamily: 'monospace',
                   }}
                 >
-                  #{quest.id.padStart(4, '0')}
+                  #{quest.id.substring(0, 8)}
                 </span>
               </div>
 
@@ -426,30 +424,7 @@ export default function QuestDetail() {
                   opacity: 0.6,
                   fontSize: '13px',
                 }}
-              >
-                {dataSource === 'firebase' ? (
-                  <span style={{ color: '#00ff88' }}>
-                    🔥 Real-time Firebase data
-                  </span>
-                ) : stats.usingFallback ? (
-                  <span style={{ color: '#ff8c00' }}>📊 Subgraph fallback</span>
-                ) : (
-                  <span style={{ color: '#888' }}>📈 Hybrid mode</span>
-                )}
-              </div>
-
-              {/* Description */}
-              <p
-                style={{
-                  fontSize: '17px',
-                  color: '#999',
-                  lineHeight: '1.7',
-                  marginBottom: '32px',
-                  maxWidth: '800px',
-                }}
-              >
-                {quest.description}
-              </p>
+              ></div>
 
               {/* Creator Info */}
               <div
@@ -495,7 +470,7 @@ export default function QuestDetail() {
                   >
                     <span>{quest.creator.reputation}% reputation</span>
                     <span style={{ color: '#444' }}>•</span>
-                    <span>Created {quest.createdAt}</span>
+                    <span>Created {formatDate(quest.createdAt)}</span>
                   </div>
                 </div>
               </div>
@@ -555,7 +530,7 @@ export default function QuestDetail() {
                     color: '#999',
                   }}
                 >
-                  {quest.deadline}
+                  {formatTimeRemaining(quest.deadline)}
                 </div>
               </div>
             </div>
@@ -1051,7 +1026,10 @@ export default function QuestDetail() {
                     }}
                   >
                     {[
-                      { label: 'Time Left', value: quest.deadline },
+                      {
+                        label: 'Time Left',
+                        value: formatTimeRemaining(quest.deadline),
+                      },
                       {
                         label: 'Submissions',
                         value: quest.submissions.length.toString(),
@@ -1272,7 +1250,7 @@ export default function QuestDetail() {
                                 color: '#666',
                               }}
                             >
-                              {submission.timestamp}
+                              {formatRelativeTime(submission.timestamp)}
                             </div>
                           </div>
 

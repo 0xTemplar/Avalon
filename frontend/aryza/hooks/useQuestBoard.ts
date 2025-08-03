@@ -42,52 +42,8 @@ export interface CreateQuestParams {
   requirements: QuestRequirements;
 }
 
-export interface Quest {
-  id: bigint;
-  creator: string;
-  title: string;
-  description: string;
-  metadataURI: string;
-  questType: QuestType;
-  bountyAmount: bigint;
-  bountyToken: string;
-  maxParticipants: bigint;
-  maxCollaborators: bigint;
-  submissionDeadline: bigint;
-  reviewDeadline: bigint;
-  requiresApproval: boolean;
-  tags: string[];
-  requirements: QuestRequirements;
-  isActive: boolean;
-  createdAt: bigint;
-}
-
-interface QuestMetadata {
-  title: string;
-  description: string;
-  requirements: QuestRequirements;
-  tags: string[];
-  questType: string;
-  createdAt: string;
-  creator: string;
-  additionalInfo?: Record<string, unknown>;
-}
-
-// Helper function to fetch IPFS metadata
-const fetchIPFSMetadata = async (
-  ipfsUrl: string
-): Promise<QuestMetadata | null> => {
-  try {
-    const response = await fetch(ipfsUrl);
-    if (!response.ok) {
-      throw new Error('Failed to fetch IPFS metadata');
-    }
-    return (await response.json()) as QuestMetadata;
-  } catch (error) {
-    console.error('Error fetching IPFS metadata:', error);
-    return null;
-  }
-};
+// Re-export FirebaseQuest as Quest for consistency
+export type Quest = FirebaseQuest;
 
 export const useQuestBoard = () => {
   const { provider, signer, chainId } = usePrivyEthers();
@@ -106,71 +62,41 @@ export const useQuestBoard = () => {
     );
   }, [provider, signer]);
 
-  // Get active quests
+  // Get active quests from Firebase
   const {
     data: activeQuests,
     isLoading: isLoadingQuests,
     refetch: refetchQuests,
   } = useQuery({
     queryKey: ['activeQuests'],
-    queryFn: async (): Promise<number[]> => {
-      if (!contract) return [];
+    queryFn: async (): Promise<FirebaseQuest[]> => {
       try {
-        const questIds = await contract.getActiveQuests();
-        return questIds.map((id: bigint) => Number(id));
+        const quests = await firebaseService.getQuests(50); // Get up to 50 active quests
+        return quests.filter((quest) => quest.status === 'Active');
       } catch (error) {
-        console.error('Error fetching active quests:', error);
+        console.error('Error fetching active quests from Firebase:', error);
         return [];
       }
     },
-    enabled: !!contract,
+    enabled: true,
     staleTime: 30 * 1000, // 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Get quest details
+  // Get quest details from Firebase
   const getQuest = useCallback(
-    async (questId: number): Promise<Quest | null> => {
-      if (!contract) return null;
+    async (questId: number | string): Promise<FirebaseQuest | null> => {
       try {
-        const questData = await contract.getQuest(questId);
-
-        // Fetch description from IPFS metadata, fallback to contract description
-        let description =
-          questData.description ||
-          'Complete this quest to earn rewards and build your reputation.';
-        if (questData.metadataURI) {
-          const metadata = await fetchIPFSMetadata(questData.metadataURI);
-          if (metadata && metadata.description) {
-            description = metadata.description; // IPFS description takes priority
-          }
-        }
-
-        return {
-          id: questData.id,
-          creator: questData.creator,
-          title: questData.title,
-          description: description, // From IPFS metadata
-          metadataURI: questData.metadataURI,
-          questType: questData.questType,
-          bountyAmount: questData.bountyAmount,
-          bountyToken: questData.bountyToken,
-          maxParticipants: questData.maxParticipants,
-          maxCollaborators: questData.maxCollaborators,
-          submissionDeadline: questData.submissionDeadline,
-          reviewDeadline: questData.reviewDeadline,
-          requiresApproval: questData.requiresApproval,
-          tags: questData.tags,
-          requirements: questData.requirements,
-          isActive: questData.isActive,
-          createdAt: questData.createdAt,
-        };
+        const questData = await firebaseService.getQuestByBlockchainId(
+          questId.toString()
+        );
+        return questData;
       } catch (error) {
-        console.error('Error getting quest:', error);
+        console.error('Error getting quest from Firebase:', error);
         return null;
       }
     },
-    [contract]
+    []
   );
 
   // Create quest
@@ -336,18 +262,10 @@ export const useQuestBoard = () => {
             return 'Hard';
           };
 
-          // Generate color based on category
-          const getCategoryColor = (category: string): string => {
-            const colors: Record<string, string> = {
-              Design: '#8B5CF6',
-              Writing: '#06B6D4',
-              Music: '#F59E0B',
-              Animation: '#EF4444',
-              NFT: '#10B981',
-              Development: '#3B82F6',
-              General: '#6B7280',
-            };
-            return colors[category] || '#6B7280';
+          // Generate color - using default green for all quests
+          const getCategoryColor = (): string => {
+            // Use default green (#00ff88) for all categories
+            return '#00ff88';
           };
 
           const category = inferCategory(
@@ -355,7 +273,7 @@ export const useQuestBoard = () => {
             params.requirements.skillsRequired
           );
           const difficulty = inferDifficulty(params.bountyAmount);
-          const color = getCategoryColor(category);
+          const color = getCategoryColor();
 
           // Generate generic requirements and deliverables based on category
           const getGenericRequirements = (category: string): string[] => {
@@ -532,8 +450,6 @@ export const useQuestBoard = () => {
 
         // Refresh quests list
         queryClient.invalidateQueries({ queryKey: ['activeQuests'] });
-        // Also refresh subgraph quests
-        queryClient.invalidateQueries({ queryKey: ['subgraph-quests'] });
 
         return { tx, questId };
       } catch (error: unknown) {

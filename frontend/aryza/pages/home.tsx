@@ -13,24 +13,16 @@ import BackgroundElements from '../components/ui/BackgroundElements';
 import GlobalStyles from '../components/ui/GlobalStyles';
 
 // Hook imports
-import { useHybridQuests } from '../hooks/useHybridQuests';
+import { useSubgraphQuests } from '../hooks/useSubgraphQuests';
 
 export default function Home() {
-  // Fetch quests using hybrid approach (Firebase + Subgraph fallback)
+  // Fetch real quests from subgraph
   const {
-    data: questsData,
+    data: subgraphQuests,
     isLoading: isLoadingQuests,
     error: questsError,
     refetch: refetchQuests,
-    dataSource,
-    stats,
-  } = useHybridQuests({
-    limitCount: 20,
-    orderBy: 'createdAt',
-    orderDirection: 'desc',
-    useRealTime: true,
-    fallbackToSubgraph: true,
-  });
+  } = useSubgraphQuests(20, 'createdAt', 'desc');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -53,6 +45,7 @@ export default function Home() {
   const [isMobile, setIsMobile] = useState(true);
 
   useEffect(() => {
+    // Set mobile state
     setIsMobile(window.innerWidth <= 768);
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -93,7 +86,8 @@ export default function Home() {
     );
   };
 
-  // Quest data comes directly from hybrid hook
+  // Use subgraph data or empty array if loading/error
+  const questsData = subgraphQuests || [];
 
   // IDs to hide from the quest list
   const hiddenQuestIds = ['1', '4', '7', '3', '6', '8'];
@@ -101,8 +95,8 @@ export default function Home() {
   // Filter and sort quests
   let filteredQuests =
     selectedCategory === 'All'
-      ? (questsData || []).filter((quest) => !hiddenQuestIds.includes(quest.id))
-      : (questsData || []).filter(
+      ? questsData.filter((quest) => !hiddenQuestIds.includes(quest.id))
+      : questsData.filter(
           (quest) =>
             quest.category === selectedCategory &&
             !hiddenQuestIds.includes(quest.id)
@@ -131,7 +125,7 @@ export default function Home() {
       case 'reward':
         return parseFloat(b.reward) - parseFloat(a.reward);
       case 'deadline':
-        return parseInt(a.deadline) - parseInt(b.deadline);
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
       case 'participants':
         return b.participants - a.participants;
       default:
@@ -190,30 +184,6 @@ export default function Home() {
         viewMode={viewMode}
         setViewMode={setViewMode}
       />
-
-      {/* Data Source Indicator */}
-      {(dataSource === 'firebase' || stats.firebaseCount > 0) && (
-        <div
-          style={{
-            textAlign: 'center',
-            margin: '20px 0 10px',
-            opacity: 0.7,
-            fontSize: '14px',
-          }}
-        >
-          {dataSource === 'firebase' ? (
-            <span style={{ color: '#00ff88' }}>
-              🔥 Real-time data ({stats.firebaseCount} quests from Firebase)
-            </span>
-          ) : stats.usingFallback ? (
-            <span style={{ color: '#ff8c00' }}>
-              📊 Subgraph fallback ({stats.subgraphCount} quests)
-            </span>
-          ) : (
-            <span style={{ color: '#888' }}>📈 Hybrid mode active</span>
-          )}
-        </div>
-      )}
 
       <QuestSection
         quests={filteredQuests}
