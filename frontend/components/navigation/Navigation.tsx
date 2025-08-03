@@ -29,7 +29,7 @@ interface NavigationProps {
 
 export default function Navigation({
   isMobile,
-  isWalletConnected: _isWalletConnected,
+  isWalletConnected,
   setIsWalletConnected,
   searchQuery,
   setSearchQuery,
