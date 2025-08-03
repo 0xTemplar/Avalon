@@ -14,6 +14,7 @@ const convertFirebaseToUIQuestDetail = (
 ): QuestDetail => {
   return {
     id: firebaseQuest.questId,
+    questId: firebaseQuest.questId,
     title: firebaseQuest.title,
     description: firebaseQuest.description,
     longDescription:

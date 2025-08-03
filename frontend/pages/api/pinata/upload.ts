@@ -20,7 +20,7 @@ interface QuestMetadata {
   questType: string;
   createdAt: string;
   creator: string;
-  additionalInfo?: Record<string, any>;
+  additionalInfo?: Record<string, unknown>;
 }
 
 export default async function handler(

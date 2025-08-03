@@ -12,7 +12,6 @@ import {
   limit,
   onSnapshot,
   Timestamp,
-  DocumentReference,
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -68,6 +67,33 @@ export interface FirebaseSubmission {
   createdAtTimestamp: Timestamp;
   updatedAtTimestamp: Timestamp;
   txHash?: string;
+}
+
+export interface BlockchainQuest {
+  questId: string;
+  title: string;
+  description: string;
+  category: string;
+  reward: string;
+  creator: {
+    address: string;
+    username: string;
+    avatar: string;
+    reputation: number;
+  };
+  participants: number;
+  maxParticipants: number;
+  deadline: string;
+  createdAt: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  status: 'Active' | 'Completed' | 'Expired';
+  tags: string[];
+  color: string;
+  requirements: string[];
+  deliverables: string[];
+  hasWinners: boolean;
+  winners: string[];
+  externalQuestId?: string;
 }
 
 class FirebaseService {
@@ -329,7 +355,7 @@ class FirebaseService {
 
   // Sync with blockchain data
   async syncQuestFromBlockchain(
-    blockchainQuest: any,
+    blockchainQuest: BlockchainQuest,
     txHash?: string
   ): Promise<void> {
     try {
@@ -341,12 +367,19 @@ class FirebaseService {
         // Update existing quest
         await this.updateQuest(existingQuest.id!, {
           ...blockchainQuest,
+          externalQuestId:
+            blockchainQuest.externalQuestId ||
+            existingQuest.externalQuestId ||
+            `blockchain-${blockchainQuest.questId}`,
           txHash,
         });
       } else {
         // Create new quest
         await this.createQuest({
           ...blockchainQuest,
+          externalQuestId:
+            blockchainQuest.externalQuestId ||
+            `blockchain-${blockchainQuest.questId}`,
           txHash,
         });
       }
