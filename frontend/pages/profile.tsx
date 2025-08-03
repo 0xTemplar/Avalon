@@ -201,7 +201,7 @@ export default function Profile() {
 
   const formatBountyAmount = (amount: string) => {
     const eth = parseFloat(amount) / 1e18;
-    return `${eth.toFixed(2)} ETH`;
+    return `${eth.toFixed(2)} XTZ`;
   };
 
   const getStatusColor = (status: string) => {
@@ -825,7 +825,7 @@ export default function Profile() {
                     lineHeight: 1,
                   }}
                 >
-                  {profileData?.formattedTotalRewards || '0.00 ETH'}
+                  {profileData?.formattedTotalRewards || '0.00 XTZ'}
                 </h3>
                 <p
                   style={{
