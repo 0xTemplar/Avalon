@@ -18,6 +18,14 @@ export enum QuestType {
   Competition = 2,
 }
 
+// Utility function to generate external quest ID
+const generateExternalQuestId = (creatorAddress: string): string => {
+  const timestamp = Date.now();
+  const addressSuffix = creatorAddress.slice(-8).toLowerCase();
+  const randomSuffix = Math.random().toString(36).substring(2, 8);
+  return `quest-${timestamp}-${addressSuffix}-${randomSuffix}`;
+};
+
 export interface QuestRequirements {
   skillsRequired: string[];
   minReputation: number;
@@ -57,7 +65,7 @@ export const useQuestBoard = () => {
     if (!provider) return null;
     return new Contract(
       CONTRACT_ADDRESSES.QuestBoard,
-      QuestBoardABI,
+      QuestBoardABI.abi,
       signer || provider
     );
   }, [provider, signer]);
@@ -142,7 +150,14 @@ export const useQuestBoard = () => {
           },
         });
 
+        // Generate external quest ID for consistent identification
+        const externalQuestId = generateExternalQuestId(
+          user?.wallet?.address || ''
+        );
+        console.log('🆔 Generated external quest ID:', externalQuestId);
+
         const tx = await contract.createQuest(
+          externalQuestId, // NEW: Pass external ID first
           params.title,
           params.description, // Keep for contract compatibility
           params.metadataURI, // IPFS metadata URI
@@ -163,9 +178,14 @@ export const useQuestBoard = () => {
         );
 
         const receipt = await tx.wait();
+        console.log('🔍 Transaction completed:', {
+          status: receipt?.status,
+          blockNumber: receipt?.blockNumber,
+          transactionHash: receipt?.hash,
+        });
 
-        // Extract quest ID from event
-        let questId = 0;
+        // Parse the QuestCreated event to get the blockchain quest ID
+        let blockchainQuestId = 0;
         if (receipt && receipt.logs) {
           for (const log of receipt.logs) {
             try {
@@ -173,14 +193,38 @@ export const useQuestBoard = () => {
                 topics: log.topics,
                 data: log.data,
               });
+
               if (parsedLog && parsedLog.name === 'QuestCreated') {
-                questId = Number(parsedLog.args.questId);
+                blockchainQuestId = Number(parsedLog.args.questId);
+                console.log(
+                  '✅ Extracted blockchain quest ID from event:',
+                  blockchainQuestId
+                );
+
+                // Verify external ID matches
+                const eventExternalId = parsedLog.args.externalId;
+                if (eventExternalId === externalQuestId) {
+                  console.log('✅ External ID verification successful');
+                } else {
+                  console.warn(
+                    '⚠️ External ID mismatch:',
+                    eventExternalId,
+                    'vs',
+                    externalQuestId
+                  );
+                }
                 break;
               }
-            } catch {
-              // Continue searching
+            } catch (error) {
+              console.log('Failed to parse log:', error);
             }
           }
+        }
+
+        if (blockchainQuestId === 0) {
+          throw new Error(
+            'Failed to extract quest ID from blockchain transaction events'
+          );
         }
 
         toast.success('Quest created successfully!', {
@@ -376,7 +420,8 @@ export const useQuestBoard = () => {
             FirebaseQuest,
             'id' | 'createdAtTimestamp' | 'updatedAtTimestamp'
           > = {
-            questId: questId.toString(),
+            questId: blockchainQuestId.toString(), // Blockchain ID for submissions matching
+            externalQuestId: externalQuestId, // External ID for frontend reference
             title: params.title,
             description: params.description,
             category,
@@ -402,9 +447,28 @@ export const useQuestBoard = () => {
             txHash: tx.hash,
           };
 
-          await firebaseService.createQuest(firebaseQuestData);
+          // Validate blockchain quest ID
+          if (blockchainQuestId <= 0) {
+            throw new Error(
+              `Invalid blockchain quest ID: ${blockchainQuestId}`
+            );
+          }
 
-          console.log(`🔥 Quest ${questId} synced to Firebase immediately!`);
+          console.log(`💾 Saving quest to Firebase:`);
+          console.log(`  External ID: ${externalQuestId}`);
+          console.log(`  Blockchain ID: ${blockchainQuestId}`);
+          console.log(
+            `  Using blockchain ID as questId for submissions matching`
+          );
+
+          const firebaseDocId = await firebaseService.createQuest(
+            firebaseQuestData
+          );
+
+          console.log(`🔥 Quest synced to Firebase successfully!`);
+          console.log(`  External ID: ${externalQuestId}`);
+          console.log(`  Blockchain ID: ${blockchainQuestId}`);
+          console.log(`  Firebase Doc ID: ${firebaseDocId}`);
 
           // Show Firebase sync success
           setTimeout(() => {
@@ -451,7 +515,11 @@ export const useQuestBoard = () => {
         // Refresh quests list
         queryClient.invalidateQueries({ queryKey: ['activeQuests'] });
 
-        return { tx, questId };
+        return {
+          tx,
+          externalQuestId,
+          blockchainQuestId,
+        };
       } catch (error: unknown) {
         console.error('Error creating quest:', error);
 

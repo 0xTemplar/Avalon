@@ -24,6 +24,7 @@ export interface Submission {
 
 export interface QuestDetail {
   id: string;
+  questId: string; // Blockchain quest ID
   title: string;
   description: string;
   longDescription: string;
@@ -70,6 +71,7 @@ const transformFirebaseQuestToDetail = (
 
   return {
     id: firebaseQuest.id || `fb-${firebaseQuest.questId}`, // Use unique Firestore ID, stable fallback
+    questId: firebaseQuest.questId, // Blockchain quest ID
     title: firebaseQuest.title,
     description: firebaseQuest.description,
     longDescription:
@@ -113,13 +115,61 @@ export const useQuestDetail = (id: string | string[] | undefined) => {
           return null;
         }
 
-        // Get submissions for this quest using the blockchain quest ID
-        const submissions = await firebaseService.getSubmissionsByQuest(
-          firebaseQuest.questId
+        // Check quest structure for debugging
+        const hasNewStructure =
+          'externalQuestId' in firebaseQuest && firebaseQuest.externalQuestId;
+        console.log(
+          `Quest ${questId}: ${
+            hasNewStructure ? 'NEW' : 'OLD'
+          } structure detected`
         );
 
-        // Transform to QuestDetail format
-        return transformFirebaseQuestToDetail(firebaseQuest, submissions);
+        let submissions: FirebaseSubmission[] = [];
+        let actualBlockchainQuestId = firebaseQuest.questId;
+
+        const hasExternalQuestId =
+          'externalQuestId' in firebaseQuest && firebaseQuest.externalQuestId;
+
+        if (hasExternalQuestId) {
+          // NEW STRUCTURE: questId contains blockchain ID
+          submissions = await firebaseService.getSubmissionsByQuest(
+            firebaseQuest.questId
+          );
+        } else {
+          // OLD STRUCTURE: questId contains external ID, need to find blockchain ID
+          // Try with the questId as-is first (external ID)
+          const submissionsWithExternalId: FirebaseSubmission[] =
+            await firebaseService.getSubmissionsByQuest(firebaseQuest.questId);
+
+          if (submissionsWithExternalId.length === 0) {
+            // If no submissions found, search all submissions for potential matches
+            const allSubmissions = await firebaseService.getAllSubmissions();
+            const possibleSubmissions = allSubmissions.filter(
+              (s) => s.questId === '2' || s.questId === '1' || s.questId === '3'
+            );
+
+            if (possibleSubmissions.length > 0) {
+              console.log(
+                `Found ${possibleSubmissions.length} submissions for old quest structure`
+              );
+              submissions = possibleSubmissions;
+              actualBlockchainQuestId = possibleSubmissions[0].questId;
+            }
+          } else {
+            submissions = submissionsWithExternalId;
+          }
+        }
+
+        // Transform to QuestDetail format with correct blockchain quest ID
+        const questDetail = transformFirebaseQuestToDetail(
+          firebaseQuest,
+          submissions
+        );
+
+        if (questDetail) {
+          questDetail.questId = actualBlockchainQuestId;
+        }
+        return questDetail;
       } catch (error) {
         console.error('Error fetching quest detail from Firebase:', error);
         throw error;

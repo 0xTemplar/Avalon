@@ -1,9 +1,13 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Image from 'next/image';
 import Avvvatars from 'avvvatars-react';
 import { useQuestDetail, type QuestDetail } from '../../hooks/useQuestDetail';
+import {
+  useSubmissionManager,
+  useQuestSubmissions,
+} from '../../hooks/useSubmissionManager';
+import { usePinata } from '../../hooks/usePinata';
 import {
   formatDate,
   formatTimeRemaining,
@@ -15,12 +19,108 @@ export default function QuestDetail() {
   const { id } = router.query;
 
   const { data: quest, isLoading, error } = useQuestDetail(id);
+  const { data: questSubmissions } = useQuestSubmissions(quest?.questId); // Use blockchain quest ID for submissions
+  const { createSubmission, isCreating: isSubmitting } = useSubmissionManager();
+  const { uploadFileToIPFS, uploading: isUploadingFiles } = usePinata();
+
   const [activeTab, setActiveTab] = useState<
     'overview' | 'submissions' | 'discussion'
   >('overview');
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [isParticipating, setIsParticipating] = useState(false);
   const [isMobile, setIsMobile] = useState(true);
+
+  // Submission form state
+  const [submissionForm, setSubmissionForm] = useState({
+    title: '',
+    description: '',
+    files: [] as File[],
+  });
+
+  // Handle file selection
+  const handleFileSelect = (files: FileList | null) => {
+    if (!files) return;
+    const fileArray = Array.from(files);
+    setSubmissionForm((prev) => ({
+      ...prev,
+      files: [...prev.files, ...fileArray],
+    }));
+  };
+
+  // Handle file removal
+  const removeFile = (index: number) => {
+    setSubmissionForm((prev) => ({
+      ...prev,
+      files: prev.files.filter((_, i) => i !== index),
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmitSubmission = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (
+      !quest ||
+      !submissionForm.title.trim() ||
+      !submissionForm.description.trim()
+    ) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    // Debug quest data
+    console.log('Quest data for submission:', {
+      id: quest.id,
+      questId: quest.questId,
+      title: quest.title,
+    });
+
+    // Validate quest has proper blockchain ID
+    if (!quest.questId || quest.questId === '0') {
+      alert(
+        'This quest was not properly created on the blockchain. Please create a new quest to enable submissions.'
+      );
+      return;
+    }
+
+    try {
+      // Upload files to IPFS first
+      const fileHashes: string[] = [];
+      const fileUrls: string[] = [];
+
+      for (const file of submissionForm.files) {
+        const uploadResult = await uploadFileToIPFS(file);
+        fileHashes.push(uploadResult.hash); // IPFS hash for smart contract
+        fileUrls.push(uploadResult.url); // Full URL for preview
+      }
+
+      // Create submission on blockchain and sync to Firebase
+      await createSubmission({
+        questId: quest.questId, // Use blockchain quest ID
+        title: submissionForm.title,
+        description: submissionForm.description,
+        fileHashes, // Array of IPFS hashes for smart contract
+        previewUrl: fileUrls[0], // Use first file URL as preview
+        collaborators: [], // Solo submission
+      });
+
+      // Reset form and close modal
+      setSubmissionForm({ title: '', description: '', files: [] });
+      setShowSubmitModal(false);
+
+      // Switch to submissions tab to see the new submission
+      setActiveTab('submissions');
+    } catch (error) {
+      console.error('Error submitting:', error);
+      alert('Failed to submit. Please try again.');
+    }
+  };
+
+  // Reset form when modal opens
+  const openSubmitModal = () => {
+    setSubmissionForm({ title: '', description: '', files: [] });
+    setShowSubmitModal(true);
+  };
 
   useEffect(() => {
     setIsMobile(window.innerWidth <= 768);
@@ -735,7 +835,7 @@ export default function QuestDetail() {
                     fontWeight: '600',
                   }}
                 >
-                  {quest.submissions.length}
+                  {questSubmissions?.length || 0}
                 </span>
               )}
               {activeTab === tab && (
@@ -982,30 +1082,42 @@ export default function QuestDetail() {
                   {/* Submit Button */}
                   <button
                     onClick={() =>
-                      !quest.hasWinners && setShowSubmitModal(true)
+                      !quest.hasWinners &&
+                      quest.questId !== '0' &&
+                      openSubmitModal()
                     }
-                    disabled={quest.hasWinners}
+                    disabled={quest.hasWinners || quest.questId === '0'}
                     style={{
                       width: '100%',
                       padding: '16px',
-                      background: quest.hasWinners ? '#333' : quest.color,
-                      color: quest.hasWinners ? '#666' : '#000',
+                      background:
+                        quest.hasWinners || quest.questId === '0'
+                          ? '#333'
+                          : quest.color,
+                      color:
+                        quest.hasWinners || quest.questId === '0'
+                          ? '#666'
+                          : '#000',
                       border: 'none',
                       fontSize: '15px',
                       fontWeight: '600',
-                      cursor: quest.hasWinners ? 'not-allowed' : 'pointer',
+                      cursor:
+                        quest.hasWinners || quest.questId === '0'
+                          ? 'not-allowed'
+                          : 'pointer',
                       borderRadius: '8px',
                       transition: 'all 0.2s ease',
-                      opacity: quest.hasWinners ? 0.5 : 1,
+                      opacity:
+                        quest.hasWinners || quest.questId === '0' ? 0.5 : 1,
                     }}
                     onMouseEnter={(e) => {
-                      if (!quest.hasWinners) {
+                      if (!quest.hasWinners && quest.questId !== '0') {
                         e.currentTarget.style.background = `${quest.color}dd`;
                         e.currentTarget.style.transform = 'translateY(-1px)';
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (!quest.hasWinners) {
+                      if (!quest.hasWinners && quest.questId !== '0') {
                         e.currentTarget.style.background = quest.color;
                         e.currentTarget.style.transform = 'translateY(0)';
                       }
@@ -1013,6 +1125,8 @@ export default function QuestDetail() {
                   >
                     {quest.hasWinners
                       ? '🏆 Quest Completed'
+                      : quest.questId === '0'
+                      ? '⚠️ Quest Not Available'
                       : 'Submit Your Work'}
                   </button>
 
@@ -1032,7 +1146,7 @@ export default function QuestDetail() {
                       },
                       {
                         label: 'Submissions',
-                        value: quest.submissions.length.toString(),
+                        value: (questSubmissions?.length || 0).toString(),
                       },
                       {
                         label: 'Participants',
@@ -1168,237 +1282,250 @@ export default function QuestDetail() {
                   gap: '16px',
                 }}
               >
-                {quest.submissions.map((submission) => (
-                  <div
-                    key={submission.id}
-                    style={{
-                      padding: '32px',
-                      background: 'rgba(255, 255, 255, 0.02)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      borderRadius: '12px',
-                      transition: 'all 0.2s ease',
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = `${quest.color}30`;
-                      e.currentTarget.style.background =
-                        'rgba(255, 255, 255, 0.03)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor =
-                        'rgba(255, 255, 255, 0.08)';
-                      e.currentTarget.style.background =
-                        'rgba(255, 255, 255, 0.02)';
-                    }}
-                  >
+                {questSubmissions && questSubmissions.length > 0 ? (
+                  questSubmissions.map((submission) => (
                     <div
+                      key={submission.id}
                       style={{
-                        display: 'grid',
-                        gridTemplateColumns:
-                          !isMobile && submission.previewUrl
-                            ? '1fr auto'
-                            : '1fr',
-                        gap: '32px',
-                        alignItems: 'start',
+                        padding: '32px',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '12px',
+                        transition: 'all 0.2s ease',
+                        cursor: 'pointer',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = `${quest.color}30`;
+                        e.currentTarget.style.background =
+                          'rgba(255, 255, 255, 0.03)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor =
+                          'rgba(255, 255, 255, 0.08)';
+                        e.currentTarget.style.background =
+                          'rgba(255, 255, 255, 0.02)';
                       }}
                     >
-                      <div>
-                        {/* Submission Header */}
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '16px',
-                            marginBottom: '20px',
-                          }}
-                        >
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns:
+                            !isMobile && submission.previewUrl
+                              ? '1fr auto'
+                              : '1fr',
+                          gap: '32px',
+                          alignItems: 'start',
+                        }}
+                      >
+                        <div>
+                          {/* Submission Header */}
                           <div
                             style={{
-                              width: '40px',
-                              height: '40px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '16px',
+                              marginBottom: '20px',
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '8px',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              <Avvvatars
+                                value={submission.author.avatar}
+                                style="shape"
+                              />
+                            </div>
+
+                            <div style={{ flex: 1 }}>
+                              <div
+                                style={{
+                                  fontSize: '15px',
+                                  fontWeight: '600',
+                                  color: '#fff',
+                                  marginBottom: '2px',
+                                }}
+                              >
+                                {submission.author.username}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: '13px',
+                                  color: '#666',
+                                }}
+                              >
+                                {formatRelativeTime(submission.timestamp)}
+                              </div>
+                            </div>
+
+                            <span
+                              style={{
+                                padding: '4px 12px',
+                                background:
+                                  submission.status === 'approved' ||
+                                  submission.status === 'winner'
+                                    ? `${quest.color}20`
+                                    : submission.status === 'rejected'
+                                    ? '#ff005520'
+                                    : 'rgba(255, 255, 255, 0.05)',
+                                color:
+                                  submission.status === 'approved' ||
+                                  submission.status === 'winner'
+                                    ? quest.color
+                                    : submission.status === 'rejected'
+                                    ? '#ff0055'
+                                    : '#666',
+                                fontSize: '12px',
+                                borderRadius: '4px',
+                                fontWeight: '600',
+                                textTransform: 'capitalize',
+                              }}
+                            >
+                              {submission.status === 'winner'
+                                ? '🏆 Winner'
+                                : submission.status}
+                            </span>
+                          </div>
+
+                          <h3
+                            style={{
+                              fontSize: '18px',
+                              fontWeight: '500',
+                              marginBottom: '12px',
+                              color: '#fff',
+                            }}
+                          >
+                            {submission.content}
+                          </h3>
+
+                          <p
+                            style={{
+                              fontSize: '15px',
+                              color: '#999',
+                              lineHeight: '1.6',
+                              marginBottom: '20px',
+                            }}
+                          >
+                            {submission.description}
+                          </p>
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '16px',
+                            }}
+                          >
+                            <button
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                background: 'rgba(255, 255, 255, 0.03)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                borderRadius: '6px',
+                                padding: '8px 16px',
+                                color: '#999',
+                                fontSize: '14px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.borderColor = quest.color;
+                                e.currentTarget.style.color = quest.color;
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.borderColor =
+                                  'rgba(255, 255, 255, 0.08)';
+                                e.currentTarget.style.color = '#999';
+                              }}
+                            >
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                              </svg>
+                              {submission.votes}
+                            </button>
+
+                            <button
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#666',
+                                fontSize: '14px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                transition: 'color 0.2s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.color = quest.color;
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.color = '#666';
+                              }}
+                            >
+                              View Details
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path d="M7 17L17 7M17 7H7M17 7V17" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Preview Image */}
+                        {!isMobile && submission.previewUrl && (
+                          <div
+                            style={{
+                              width: '160px',
+                              height: '160px',
                               borderRadius: '8px',
                               overflow: 'hidden',
-                            }}
-                          >
-                            <Image
-                              src={submission.author.avatar}
-                              alt={submission.author.username}
-                              width={40}
-                              height={40}
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                              }}
-                            />
-                          </div>
-
-                          <div style={{ flex: 1 }}>
-                            <div
-                              style={{
-                                fontSize: '15px',
-                                fontWeight: '600',
-                                color: '#fff',
-                                marginBottom: '2px',
-                              }}
-                            >
-                              {submission.author.username}
-                            </div>
-                            <div
-                              style={{
-                                fontSize: '13px',
-                                color: '#666',
-                              }}
-                            >
-                              {formatRelativeTime(submission.timestamp)}
-                            </div>
-                          </div>
-
-                          <span
-                            style={{
-                              padding: '4px 12px',
-                              background:
-                                submission.status === 'approved' ||
-                                submission.status === 'winner'
-                                  ? `${quest.color}20`
-                                  : submission.status === 'rejected'
-                                  ? '#ff005520'
-                                  : 'rgba(255, 255, 255, 0.05)',
-                              color:
-                                submission.status === 'approved' ||
-                                submission.status === 'winner'
-                                  ? quest.color
-                                  : submission.status === 'rejected'
-                                  ? '#ff0055'
-                                  : '#666',
-                              fontSize: '12px',
-                              borderRadius: '4px',
-                              fontWeight: '600',
-                              textTransform: 'capitalize',
-                            }}
-                          >
-                            {submission.status === 'winner'
-                              ? '🏆 Winner'
-                              : submission.status}
-                          </span>
-                        </div>
-
-                        <h3
-                          style={{
-                            fontSize: '18px',
-                            fontWeight: '500',
-                            marginBottom: '12px',
-                            color: '#fff',
-                          }}
-                        >
-                          {submission.content}
-                        </h3>
-
-                        <p
-                          style={{
-                            fontSize: '15px',
-                            color: '#999',
-                            lineHeight: '1.6',
-                            marginBottom: '20px',
-                          }}
-                        >
-                          {submission.description}
-                        </p>
-
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '16px',
-                          }}
-                        >
-                          <button
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                              background: 'rgba(255, 255, 255, 0.03)',
+                              background: `url(${submission.previewUrl}) center/cover`,
                               border: '1px solid rgba(255, 255, 255, 0.08)',
-                              borderRadius: '6px',
-                              padding: '8px 16px',
-                              color: '#999',
-                              fontSize: '14px',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s ease',
                             }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.borderColor = quest.color;
-                              e.currentTarget.style.color = quest.color;
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.borderColor =
-                                'rgba(255, 255, 255, 0.08)';
-                              e.currentTarget.style.color = '#999';
-                            }}
-                          >
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-                            </svg>
-                            {submission.votes}
-                          </button>
-
-                          <button
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: '#666',
-                              fontSize: '14px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              transition: 'color 0.2s ease',
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.color = quest.color;
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.color = '#666';
-                            }}
-                          >
-                            View Details
-                            <svg
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path d="M7 17L17 7M17 7H7M17 7V17" />
-                            </svg>
-                          </button>
-                        </div>
+                          />
+                        )}
                       </div>
-
-                      {/* Preview Image */}
-                      {!isMobile && submission.previewUrl && (
-                        <div
-                          style={{
-                            width: '160px',
-                            height: '160px',
-                            borderRadius: '8px',
-                            overflow: 'hidden',
-                            background: `url(${submission.previewUrl}) center/cover`,
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                          }}
-                        />
-                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '60px 20px',
+                      color: '#666',
+                    }}
+                  >
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>
+                      📝
+                    </div>
+                    <div style={{ fontSize: '18px', marginBottom: '8px' }}>
+                      No submissions yet
+                    </div>
+                    <div style={{ fontSize: '14px' }}>
+                      Be the first to submit your work!
                     </div>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
@@ -1555,6 +1682,7 @@ export default function QuestDetail() {
             </h2>
 
             <form
+              onSubmit={handleSubmitSubmission}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -1577,6 +1705,13 @@ export default function QuestDetail() {
                 </label>
                 <input
                   type="text"
+                  value={submissionForm.title}
+                  onChange={(e) =>
+                    setSubmissionForm((prev) => ({
+                      ...prev,
+                      title: e.target.value,
+                    }))
+                  }
                   placeholder="Give your submission a descriptive title"
                   style={{
                     width: '100%',
@@ -1614,6 +1749,13 @@ export default function QuestDetail() {
                   Description
                 </label>
                 <textarea
+                  value={submissionForm.description}
+                  onChange={(e) =>
+                    setSubmissionForm((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
                   placeholder="Describe your work and creative process..."
                   rows={4}
                   style={{
@@ -1652,48 +1794,119 @@ export default function QuestDetail() {
                 >
                   Files
                 </label>
-                <div
-                  style={{
-                    padding: '40px',
-                    border: '2px dashed rgba(255, 255, 255, 0.08)',
-                    borderRadius: '8px',
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${quest.color}40`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor =
-                      'rgba(255, 255, 255, 0.08)';
-                  }}
-                >
-                  <svg
-                    width="40"
-                    height="40"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#444"
-                    strokeWidth="1.5"
-                    style={{ margin: '0 auto 12px' }}
-                  >
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="17 8 12 3 7 8" />
-                    <line x1="12" y1="3" x2="12" y2="15" />
-                  </svg>
-                  <div
+                <div>
+                  <input
+                    type="file"
+                    multiple
+                    onChange={(e) => handleFileSelect(e.target.files)}
+                    style={{ display: 'none' }}
+                    id="file-upload"
+                    accept=".png,.jpg,.jpeg,.pdf,.zip"
+                  />
+                  <label
+                    htmlFor="file-upload"
                     style={{
-                      fontSize: '15px',
-                      color: '#ccc',
-                      marginBottom: '4px',
+                      display: 'block',
+                      padding: '40px',
+                      border: '2px dashed rgba(255, 255, 255, 0.08)',
+                      borderRadius: '8px',
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = `${quest.color}40`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor =
+                        'rgba(255, 255, 255, 0.08)';
                     }}
                   >
-                    Drag files here or click to browse
-                  </div>
-                  <div style={{ fontSize: '13px', color: '#666' }}>
-                    PNG, JPG, PDF, ZIP (Max 50MB)
-                  </div>
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#444"
+                      strokeWidth="1.5"
+                      style={{ margin: '0 auto 12px' }}
+                    >
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    <div
+                      style={{
+                        fontSize: '15px',
+                        color: '#ccc',
+                        marginBottom: '4px',
+                      }}
+                    >
+                      Drag files here or click to browse
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#666' }}>
+                      PNG, JPG, PDF, ZIP (Max 50MB)
+                    </div>
+                  </label>
+
+                  {/* Selected Files Display */}
+                  {submissionForm.files.length > 0 && (
+                    <div style={{ marginTop: '16px' }}>
+                      <div
+                        style={{
+                          fontSize: '13px',
+                          color: '#888',
+                          marginBottom: '8px',
+                        }}
+                      >
+                        Selected Files ({submissionForm.files.length}):
+                      </div>
+                      {submissionForm.files.map((file, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '8px 12px',
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            borderRadius: '6px',
+                            marginBottom: '4px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                            }}
+                          >
+                            <span style={{ fontSize: '12px', color: '#999' }}>
+                              {file.name}
+                            </span>
+                            <span style={{ fontSize: '11px', color: '#666' }}>
+                              ({Math.round(file.size / 1024)}KB)
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeFile(index)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#ff0055',
+                              cursor: 'pointer',
+                              fontSize: '16px',
+                              padding: '2px',
+                            }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1735,30 +1948,75 @@ export default function QuestDetail() {
 
                 <button
                   type="submit"
+                  disabled={
+                    isSubmitting ||
+                    isUploadingFiles ||
+                    !submissionForm.title.trim() ||
+                    !submissionForm.description.trim()
+                  }
                   style={{
                     flex: 2,
                     padding: '12px',
-                    background: quest.color,
-                    color: '#000',
+                    background:
+                      isSubmitting ||
+                      isUploadingFiles ||
+                      !submissionForm.title.trim() ||
+                      !submissionForm.description.trim()
+                        ? '#333'
+                        : quest.color,
+                    color:
+                      isSubmitting ||
+                      isUploadingFiles ||
+                      !submissionForm.title.trim() ||
+                      !submissionForm.description.trim()
+                        ? '#666'
+                        : '#000',
                     border: 'none',
                     borderRadius: '8px',
                     fontSize: '14px',
                     fontWeight: '600',
-                    cursor: 'pointer',
+                    cursor:
+                      isSubmitting ||
+                      isUploadingFiles ||
+                      !submissionForm.title.trim() ||
+                      !submissionForm.description.trim()
+                        ? 'not-allowed'
+                        : 'pointer',
                     transition: 'all 0.2s ease',
-                  }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setShowSubmitModal(false);
+                    opacity:
+                      isSubmitting ||
+                      isUploadingFiles ||
+                      !submissionForm.title.trim() ||
+                      !submissionForm.description.trim()
+                        ? 0.5
+                        : 1,
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = `${quest.color}dd`;
+                    if (
+                      !isSubmitting &&
+                      !isUploadingFiles &&
+                      submissionForm.title.trim() &&
+                      submissionForm.description.trim()
+                    ) {
+                      e.currentTarget.style.background = `${quest.color}dd`;
+                    }
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = quest.color;
+                    if (
+                      !isSubmitting &&
+                      !isUploadingFiles &&
+                      submissionForm.title.trim() &&
+                      submissionForm.description.trim()
+                    ) {
+                      e.currentTarget.style.background = quest.color;
+                    }
                   }}
                 >
-                  Submit Entry
+                  {isSubmitting
+                    ? 'Creating Submission...'
+                    : isUploadingFiles
+                    ? 'Uploading Files...'
+                    : 'Submit Entry'}
                 </button>
               </div>
             </form>

@@ -98,7 +98,14 @@ async function main() {
     const submissionDeadline = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60; // 7 days
     const reviewDeadline = submissionDeadline + 2 * 24 * 60 * 60; // 2 days for review
 
+    // Generate external quest ID for dual ID system
+    const externalQuestId = `demo-quest-${Date.now()}-${demoUser.address.slice(
+      -8
+    )}`;
+    console.log('Generated external quest ID:', externalQuestId);
+
     const questTx = await questBoard.connect(demoUser).createQuest(
+      externalQuestId, // NEW: External ID as first parameter
       'Canladea Innovation Sprint: Build & Win',
       'Create something amazing solo and win the full bounty! Perfect demo of creator-participant model where innovation meets rewards.',
       'https://ipfs.io/solo-innovation-brief',

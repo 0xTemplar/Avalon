@@ -20,6 +20,7 @@ import { db } from './firebase';
 export interface FirebaseQuest {
   id?: string; // Firestore document ID
   questId: string; // Blockchain quest ID
+  externalQuestId: string; // External quest ID for frontend reference
   title: string;
   description: string;
   category: string;
@@ -274,6 +275,26 @@ class FirebaseService {
       );
     } catch (error) {
       console.error('Error getting submissions from Firebase:', error);
+      throw error;
+    }
+  }
+
+  async getAllSubmissions(): Promise<FirebaseSubmission[]> {
+    try {
+      const q = query(collection(db, 'submissions'));
+      const querySnapshot = await getDocs(q);
+      const submissions = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as FirebaseSubmission[];
+
+      // Sort on client side by createdAtTimestamp (most recent first)
+      return submissions.sort(
+        (a, b) =>
+          b.createdAtTimestamp.toMillis() - a.createdAtTimestamp.toMillis()
+      );
+    } catch (error) {
+      console.error('Error getting all submissions from Firebase:', error);
       throw error;
     }
   }

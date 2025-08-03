@@ -28,6 +28,10 @@ contract QuestBoard is IQuestBoard, AccessControl, ReentrancyGuard, Pausable {
     mapping(uint256 => mapping(address => bool)) private _pendingApprovals;
     mapping(address => uint256[]) private _creatorQuests;
     mapping(string => uint256[]) private _tagQuests;
+    
+    // External ID mappings
+    mapping(string => uint256) private _externalIdToQuestId;
+    mapping(uint256 => string) private _questIdToExternalId;
 
     uint256 private _questCounter;
     uint256 private _platformFeePercentage = 250; // 2.5% in basis points
@@ -69,6 +73,7 @@ contract QuestBoard is IQuestBoard, AccessControl, ReentrancyGuard, Pausable {
     }
 
     function createQuest(
+        string calldata externalId,
         string calldata title,
         string calldata description,
         string calldata metadataURI,
@@ -83,6 +88,8 @@ contract QuestBoard is IQuestBoard, AccessControl, ReentrancyGuard, Pausable {
         string[] calldata tags,
         QuestRequirements calldata requirements
     ) external payable nonReentrant whenNotPaused returns (uint256 questId) {
+        require(bytes(externalId).length > 0, "External ID cannot be empty");
+        require(_externalIdToQuestId[externalId] == 0, "External ID already exists");
         require(bytes(title).length > 0, "Title cannot be empty");
         require(submissionDeadline > block.timestamp, "Invalid submission deadline");
         require(reviewDeadline > submissionDeadline, "Invalid review deadline");
@@ -91,6 +98,10 @@ contract QuestBoard is IQuestBoard, AccessControl, ReentrancyGuard, Pausable {
 
         _questCounter++;
         questId = _questCounter;
+
+        // Map external ID to internal ID
+        _externalIdToQuestId[externalId] = questId;
+        _questIdToExternalId[questId] = externalId;
 
         if (bountyAmount > 0) {
             if (bountyToken == address(0)) {
@@ -108,6 +119,7 @@ contract QuestBoard is IQuestBoard, AccessControl, ReentrancyGuard, Pausable {
 
         _quests[questId] = Quest({
             id: questId,
+            externalId: externalId,
             creator: msg.sender,
             title: title,
             description: description,
@@ -139,6 +151,7 @@ contract QuestBoard is IQuestBoard, AccessControl, ReentrancyGuard, Pausable {
 
         emit QuestCreated(
             questId,
+            externalId,
             msg.sender,
             title,
             description,
@@ -317,6 +330,23 @@ contract QuestBoard is IQuestBoard, AccessControl, ReentrancyGuard, Pausable {
 
     function getTotalQuests() external view returns (uint256) {
         return _questCounter;
+    }
+
+    // External ID lookup functions
+    function getQuestIdByExternalId(string calldata externalId) external view returns (uint256) {
+        uint256 questId = _externalIdToQuestId[externalId];
+        require(questId != 0, "Quest not found");
+        return questId;
+    }
+
+    function getExternalIdByQuestId(uint256 questId) external view validQuest(questId) returns (string memory) {
+        return _questIdToExternalId[questId];
+    }
+
+    function getQuestByExternalId(string calldata externalId) external view returns (Quest memory) {
+        uint256 questId = _externalIdToQuestId[externalId];
+        require(questId != 0, "Quest not found");
+        return _quests[questId];
     }
 
     // Admin Functions
