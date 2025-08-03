@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 🔄 Aryza Subgraph Address Update Script
+# 🔄 Avalon Subgraph Address Update Script
 # This script updates contract addresses in subgraph.yaml
 
 set -e  # Exit on any error
@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🔄 Aryza Subgraph Address Update Script${NC}"
+echo -e "${BLUE}🔄 Avalon Subgraph Address Update Script${NC}"
 echo "=========================================="
 
 # Function to validate Ethereum address
