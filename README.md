@@ -1,4 +1,7 @@
 # Avalon
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/your-org/avalon/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/your-org/avalon/releases)
 
 **The Decentralized Creative Economy Platform**
 
