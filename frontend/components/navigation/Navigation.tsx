@@ -12,6 +12,7 @@ import { useUserProfile } from '../../hooks/useUserProfile';
 import { useUsernameCache } from '../../hooks/useUsernameCache';
 import UserRegistrationModal from '../modals/UserRegistrationModal';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface NavigationProps {
   isMobile: boolean;
@@ -237,7 +238,8 @@ export default function Navigation({
               }}
             ></div> */}
           </div>
-          <h1
+          <Link
+            href="/home"
             style={{
               fontSize: !isMobile ? '18px' : '16px',
               fontWeight: '300',
@@ -252,7 +254,7 @@ export default function Navigation({
               width={100}
               height={100}
             />
-          </h1>
+          </Link>
         </div>
 
         {/* Desktop Navigation */}

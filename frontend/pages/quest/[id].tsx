@@ -1353,9 +1353,9 @@ export default function QuestDetail() {
                       </span>
                     </div>
                     <p style={{ color: '#ccc', fontSize: '13px', margin: 0 }}>
-                      You can select winners by clicking the &ldquo;🏆 Select Winner&rdquo;
-                      button on any submission. This will distribute rewards and
-                      mark the quest as complete.
+                      You can select winners by clicking the &ldquo;🏆 Select
+                      Winner&rdquo; button on any submission. This will
+                      distribute rewards and mark the quest as complete.
                     </p>
                   </div>
                 )}

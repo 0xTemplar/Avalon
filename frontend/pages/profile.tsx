@@ -411,7 +411,7 @@ export default function Profile() {
                   lineHeight: 1,
                 }}
               >
-                {profileData?.username || 'Anonymous User'}
+                {profileData?.username || ''}
               </h1>
 
               <div
