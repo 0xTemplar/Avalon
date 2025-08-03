@@ -2,133 +2,14 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
-
-interface Submission {
-  id: string;
-  author: {
-    address: string;
-    username: string;
-    avatar: string;
-  };
-  content: string;
-  description: string;
-  timestamp: string;
-  votes: number;
-  status: 'pending' | 'approved' | 'rejected';
-  previewUrl?: string;
-}
-
-interface QuestDetail {
-  id: string;
-  title: string;
-  description: string;
-  longDescription: string;
-  category: string;
-  reward: string;
-  creator: {
-    address: string;
-    username: string;
-    avatar: string;
-    reputation: number;
-  };
-  participants: number;
-  maxParticipants: number;
-  deadline: string;
-  createdAt: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  status: 'Active' | 'Completed' | 'Expired';
-  tags: string[];
-  color: string;
-  requirements: string[];
-  deliverables: string[];
-  submissions: Submission[];
-}
-
-const mockQuest: QuestDetail = {
-  id: '1',
-  title: 'Design a Cyberpunk Album Cover',
-  description:
-    'Create an original album cover for an electronic music artist. Must incorporate neon aesthetics and futuristic elements.',
-  longDescription: `We're looking for a visionary designer to create an album cover that captures the essence of cyberpunk aesthetics. The cover should blend neon-soaked cityscapes with futuristic elements, creating a visual narrative that complements electronic music.
-
-The ideal submission will demonstrate mastery of color theory, particularly in the use of vibrant neons against dark backgrounds. Typography should be bold and futuristic, while maintaining readability. Consider incorporating elements like holographic effects, glitch art, or retrofuturistic motifs.
-
-This is an opportunity to showcase your creativity and push the boundaries of digital art. The winning design will be featured on all major streaming platforms and physical releases.`,
-  category: 'Design',
-  reward: '0.5 XTZ',
-  creator: {
-    address: '0x742d35Cc6634C0532925a3b844Bc454e9c5f8c',
-    username: 'CyberArtist',
-    avatar:
-      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face',
-    reputation: 98,
-  },
-  participants: 12,
-  maxParticipants: 50,
-  deadline: '3 days left',
-  createdAt: '2024-01-15',
-  difficulty: 'Medium',
-  status: 'Active',
-  tags: ['Design', 'Music', 'Digital Art', 'Cyberpunk', 'Album Art'],
-  color: '#00ff88',
-  requirements: [
-    'Minimum resolution: 3000x3000px',
-    'Format: PNG or JPG with source files',
-    'Must include artist name and album title',
-    'Original work only - no stock images',
-    'Deliverable within 72 hours',
-  ],
-  deliverables: [
-    'High-resolution album cover (3000x3000px)',
-    'Social media versions (1080x1080px, 1920x1080px)',
-    'Source files (PSD, AI, or equivalent)',
-    'Brief design rationale (200 words)',
-  ],
-  submissions: [
-    {
-      id: '1',
-      author: {
-        address: '0x8f3a...2d1e',
-        username: 'NeonDreamer',
-        avatar:
-          'https://images.unsplash.com/photo-1494790108755-2616b332c3c8?w=100&h=100&fit=crop&crop=face',
-      },
-      content: 'Neon cityscape with holographic elements',
-      description:
-        'A futuristic interpretation featuring cascading neon lights and geometric patterns that pulse with the rhythm of electronic beats.',
-      timestamp: '2 hours ago',
-      votes: 24,
-      status: 'pending',
-      previewUrl:
-        'https://images.unsplash.com/photo-1614850715649-1d0106293bd1?w=400&h=400&fit=crop',
-    },
-    {
-      id: '2',
-      author: {
-        address: '0x1a9b...7c3d',
-        username: 'GlitchMaster',
-        avatar:
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-      },
-      content: 'Glitch art interpretation with typography focus',
-      description:
-        'Experimental design combining data corruption aesthetics with bold typographic elements.',
-      timestamp: '5 hours ago',
-      votes: 18,
-      status: 'pending',
-      previewUrl:
-        'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=400&fit=crop',
-    },
-  ],
-};
+import Avvvatars from 'avvvatars-react';
+import { useQuestDetail, type QuestDetail } from '../../hooks/useQuestDetail';
 
 export default function QuestDetail() {
   const router = useRouter();
   const { id } = router.query;
-  const [quest] = useState<QuestDetail>(mockQuest);
 
-  // Using id for future API calls
-  console.log('Quest ID:', id);
+  const { data: quest, isLoading, error } = useQuestDetail(id);
   const [activeTab, setActiveTab] = useState<
     'overview' | 'submissions' | 'discussion'
   >('overview');
@@ -157,6 +38,90 @@ export default function QuestDetail() {
         return '#666';
     }
   };
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: '#000',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <div style={{ color: '#666', fontSize: '16px' }}>Loading quest...</div>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: '#000',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          gap: '16px',
+        }}
+      >
+        <div style={{ color: '#ff0055', fontSize: '18px' }}>
+          Error loading quest
+        </div>
+        <div style={{ color: '#666', fontSize: '14px' }}>{error.message}</div>
+        <button
+          onClick={() => router.push('/home')}
+          style={{
+            padding: '12px 24px',
+            background: '#333',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+          }}
+        >
+          Back to Quests
+        </button>
+      </div>
+    );
+  }
+
+  // Handle case where quest is not found
+  if (!quest) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: '#000',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          gap: '16px',
+        }}
+      >
+        <div style={{ color: '#666', fontSize: '18px' }}>Quest not found</div>
+        <button
+          onClick={() => router.push('/home')}
+          style={{
+            padding: '12px 24px',
+            background: '#333',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+          }}
+        >
+          Back to Quests
+        </button>
+      </div>
+    );
+  }
 
   const progressPercentage = (quest.participants / quest.maxParticipants) * 100;
 
@@ -246,19 +211,38 @@ export default function QuestDetail() {
               gap: '12px',
             }}
           >
-            <span
-              style={{
-                padding: '6px 12px',
-                background: `${quest.color}15`,
-                color: quest.color,
-                fontSize: '12px',
-                borderRadius: '6px',
-                fontWeight: '600',
-                letterSpacing: '0.03em',
-              }}
-            >
-              {quest.status}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span
+                style={{
+                  padding: '6px 12px',
+                  background: quest.hasWinners
+                    ? '#00ff8820'
+                    : `${quest.color}15`,
+                  color: quest.hasWinners ? '#00ff88' : quest.color,
+                  fontSize: '12px',
+                  borderRadius: '6px',
+                  fontWeight: '600',
+                  letterSpacing: '0.03em',
+                }}
+              >
+                {quest.hasWinners ? '🏆 Completed' : quest.status}
+              </span>
+              {quest.hasWinners && (
+                <span
+                  style={{
+                    padding: '4px 8px',
+                    background: 'rgba(255, 215, 0, 0.1)',
+                    color: '#ffd700',
+                    fontSize: '11px',
+                    borderRadius: '4px',
+                    fontWeight: '600',
+                  }}
+                >
+                  {quest.winners.length} Winner
+                  {quest.winners.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </nav>
@@ -380,19 +364,12 @@ export default function QuestDetail() {
                     borderRadius: '12px',
                     overflow: 'hidden',
                     border: `1px solid ${quest.color}30`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  <Image
-                    src={quest.creator.avatar}
-                    alt={quest.creator.username}
-                    width={48}
-                    height={48}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                    }}
-                  />
+                  <Avvvatars value={quest.creator.avatar} style="shape" />
                 </div>
                 <div>
                   <div
@@ -530,34 +507,54 @@ export default function QuestDetail() {
             </div>
 
             <button
-              onClick={() => setIsParticipating(!isParticipating)}
+              onClick={() =>
+                !quest.hasWinners && setIsParticipating(!isParticipating)
+              }
+              disabled={quest.hasWinners}
               style={{
                 padding: '12px 24px',
-                background: isParticipating ? 'transparent' : quest.color,
-                color: isParticipating ? quest.color : '#000',
-                border: `1px solid ${quest.color}`,
+                background: quest.hasWinners
+                  ? '#333'
+                  : isParticipating
+                  ? 'transparent'
+                  : quest.color,
+                color: quest.hasWinners
+                  ? '#666'
+                  : isParticipating
+                  ? quest.color
+                  : '#000',
+                border: `1px solid ${quest.hasWinners ? '#333' : quest.color}`,
                 fontSize: '14px',
                 fontWeight: '600',
-                cursor: 'pointer',
+                cursor: quest.hasWinners ? 'not-allowed' : 'pointer',
                 borderRadius: '8px',
                 transition: 'all 0.2s ease',
+                opacity: quest.hasWinners ? 0.5 : 1,
               }}
               onMouseEnter={(e) => {
-                if (!isParticipating) {
-                  e.currentTarget.style.background = `${quest.color}dd`;
-                } else {
-                  e.currentTarget.style.background = `${quest.color}10`;
+                if (!quest.hasWinners) {
+                  if (!isParticipating) {
+                    e.currentTarget.style.background = `${quest.color}dd`;
+                  } else {
+                    e.currentTarget.style.background = `${quest.color}10`;
+                  }
                 }
               }}
               onMouseLeave={(e) => {
-                if (!isParticipating) {
-                  e.currentTarget.style.background = quest.color;
-                } else {
-                  e.currentTarget.style.background = 'transparent';
+                if (!quest.hasWinners) {
+                  if (!isParticipating) {
+                    e.currentTarget.style.background = quest.color;
+                  } else {
+                    e.currentTarget.style.background = 'transparent';
+                  }
                 }
               }}
             >
-              {isParticipating ? 'Participating' : 'Join Quest'}
+              {quest.hasWinners
+                ? '🏆 Quest Completed'
+                : isParticipating
+                ? 'Participating'
+                : 'Join Quest'}
             </button>
           </div>
 
@@ -907,29 +904,39 @@ export default function QuestDetail() {
 
                   {/* Submit Button */}
                   <button
-                    onClick={() => setShowSubmitModal(true)}
+                    onClick={() =>
+                      !quest.hasWinners && setShowSubmitModal(true)
+                    }
+                    disabled={quest.hasWinners}
                     style={{
                       width: '100%',
                       padding: '16px',
-                      background: quest.color,
-                      color: '#000',
+                      background: quest.hasWinners ? '#333' : quest.color,
+                      color: quest.hasWinners ? '#666' : '#000',
                       border: 'none',
                       fontSize: '15px',
                       fontWeight: '600',
-                      cursor: 'pointer',
+                      cursor: quest.hasWinners ? 'not-allowed' : 'pointer',
                       borderRadius: '8px',
                       transition: 'all 0.2s ease',
+                      opacity: quest.hasWinners ? 0.5 : 1,
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = `${quest.color}dd`;
-                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      if (!quest.hasWinners) {
+                        e.currentTarget.style.background = `${quest.color}dd`;
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                      }
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = quest.color;
-                      e.currentTarget.style.transform = 'translateY(0)';
+                      if (!quest.hasWinners) {
+                        e.currentTarget.style.background = quest.color;
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }
                     }}
                   >
-                    Submit Your Work
+                    {quest.hasWinners
+                      ? '🏆 Quest Completed'
+                      : 'Submit Your Work'}
                   </button>
 
                   {/* Stats */}
@@ -996,6 +1003,48 @@ export default function QuestDetail() {
 
           {activeTab === 'submissions' && (
             <div>
+              {quest.hasWinners && (
+                <div
+                  style={{
+                    padding: '20px',
+                    background:
+                      'linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(0, 255, 136, 0.1))',
+                    border: '1px solid rgba(255, 215, 0, 0.2)',
+                    borderRadius: '12px',
+                    marginBottom: '32px',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>
+                    🏆
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: '600',
+                      marginBottom: '8px',
+                      color: '#ffd700',
+                    }}
+                  >
+                    Quest Completed!
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: '14px',
+                      color: '#ccc',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    {quest.winners.length} winner
+                    {quest.winners.length > 1 ? 's have' : ' has'} been selected
+                    for this quest.
+                  </p>
+                  <div style={{ fontSize: '12px', color: '#888' }}>
+                    No new submissions can be made.
+                  </div>
+                </div>
+              )}
+
               <div
                 style={{
                   display: 'flex',
@@ -1129,12 +1178,18 @@ export default function QuestDetail() {
                             style={{
                               padding: '4px 12px',
                               background:
-                                submission.status === 'approved'
+                                submission.status === 'approved' ||
+                                submission.status === 'winner'
                                   ? `${quest.color}20`
+                                  : submission.status === 'rejected'
+                                  ? '#ff005520'
                                   : 'rgba(255, 255, 255, 0.05)',
                               color:
-                                submission.status === 'approved'
+                                submission.status === 'approved' ||
+                                submission.status === 'winner'
                                   ? quest.color
+                                  : submission.status === 'rejected'
+                                  ? '#ff0055'
                                   : '#666',
                               fontSize: '12px',
                               borderRadius: '4px',
@@ -1142,7 +1197,9 @@ export default function QuestDetail() {
                               textTransform: 'capitalize',
                             }}
                           >
-                            {submission.status}
+                            {submission.status === 'winner'
+                              ? '🏆 Winner'
+                              : submission.status}
                           </span>
                         </div>
 

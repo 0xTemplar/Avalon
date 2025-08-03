@@ -137,7 +137,23 @@ contract QuestBoard is IQuestBoard, AccessControl, ReentrancyGuard, Pausable {
 
 
 
-        emit QuestCreated(questId, msg.sender, title, bountyAmount, bountyToken);
+        emit QuestCreated(
+            questId,
+            msg.sender,
+            title,
+            description,
+            metadataURI,
+            questType,
+            bountyAmount,
+            bountyToken,
+            maxParticipants,
+            maxCollaborators,
+            submissionDeadline,
+            reviewDeadline,
+            requiresApproval,
+            tags,
+            requirements
+        );
     }
 
     function updateQuest(

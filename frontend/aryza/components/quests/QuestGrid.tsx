@@ -1,6 +1,7 @@
 import React from 'react';
-import Image from 'next/image';
+import { useRouter } from 'next/router';
 import { Quest } from './types';
+import Avvvatars from 'avvvatars-react';
 
 interface QuestGridProps {
   quests: Quest[];
@@ -32,6 +33,12 @@ export default function QuestGrid({
   bookmarkedQuests,
   toggleBookmark,
 }: QuestGridProps) {
+  const router = useRouter();
+
+  const handleQuestClick = (questId: string) => {
+    router.push(`/quest/${questId}`);
+  };
+
   return (
     <div
       style={{
@@ -44,6 +51,7 @@ export default function QuestGrid({
       {quests.map((quest) => (
         <div
           key={quest.id}
+          onClick={() => handleQuestClick(quest.id)}
           onMouseEnter={() => setHoveredCard(quest.id)}
           onMouseLeave={() => setHoveredCard(null)}
           onTouchStart={() => setHoveredCard(quest.id)}
@@ -160,21 +168,10 @@ export default function QuestGrid({
                     background: '#050505',
                   }}
                 >
-                  <Image
-                    src={quest.creator.avatar}
-                    alt={quest.creator.username}
-                    width={56}
-                    height={56}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      filter:
-                        hoveredCard === quest.id
-                          ? 'brightness(1.1)'
-                          : 'brightness(1)',
-                      transition: 'filter 0.3s ease',
-                    }}
+                  <Avvvatars
+                    size={56}
+                    style="shape"
+                    value={quest.creator.username}
                   />
                 </div>
               </div>
@@ -247,6 +244,17 @@ export default function QuestGrid({
               to {
                 transform: translate(-50%, -50%) rotate(360deg) translateX(35px)
                   rotate(-360deg);
+              }
+            }
+
+            @keyframes fadeIn {
+              from {
+                opacity: 0;
+                transform: translateY(10px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
               }
             }
           `}</style>
@@ -403,7 +411,7 @@ export default function QuestGrid({
                           letterSpacing: '-0.02em',
                         }}
                       >
-                        {quest.reward.split(' ')[0]}
+                        {quest.reward.split(' ')[0].slice(0, 3)}
                       </span>
                       <span
                         style={{
@@ -467,6 +475,10 @@ export default function QuestGrid({
 
               {hoveredCard === quest.id && (
                 <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleQuestClick(quest.id);
+                  }}
                   style={{
                     padding: '10px 20px',
                     background: 'none',

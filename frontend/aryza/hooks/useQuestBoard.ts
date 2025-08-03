@@ -25,8 +25,8 @@ export interface QuestRequirements {
 
 export interface CreateQuestParams {
   title: string;
-  description: string;
-  metadataURI: string;
+  description: string; // Stored both in contract and IPFS metadata
+  metadataURI: string; // IPFS URI containing detailed metadata
   questType: QuestType;
   bountyAmount: string; // ETH amount as string
   bountyToken: string; // Use ethers.ZeroAddress for ETH
@@ -59,8 +59,35 @@ export interface Quest {
   createdAt: bigint;
 }
 
+interface QuestMetadata {
+  title: string;
+  description: string;
+  requirements: QuestRequirements;
+  tags: string[];
+  questType: string;
+  createdAt: string;
+  creator: string;
+  additionalInfo?: Record<string, unknown>;
+}
+
+// Helper function to fetch IPFS metadata
+const fetchIPFSMetadata = async (
+  ipfsUrl: string
+): Promise<QuestMetadata | null> => {
+  try {
+    const response = await fetch(ipfsUrl);
+    if (!response.ok) {
+      throw new Error('Failed to fetch IPFS metadata');
+    }
+    return (await response.json()) as QuestMetadata;
+  } catch (error) {
+    console.error('Error fetching IPFS metadata:', error);
+    return null;
+  }
+};
+
 export const useQuestBoard = () => {
-  const { provider, signer, address, chainId } = usePrivyEthers();
+  const { provider, signer, chainId } = usePrivyEthers();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
@@ -102,11 +129,23 @@ export const useQuestBoard = () => {
       if (!contract) return null;
       try {
         const questData = await contract.getQuest(questId);
+
+        // Fetch description from IPFS metadata, fallback to contract description
+        let description =
+          questData.description ||
+          'Complete this quest to earn rewards and build your reputation.';
+        if (questData.metadataURI) {
+          const metadata = await fetchIPFSMetadata(questData.metadataURI);
+          if (metadata && metadata.description) {
+            description = metadata.description; // IPFS description takes priority
+          }
+        }
+
         return {
           id: questData.id,
           creator: questData.creator,
           title: questData.title,
-          description: questData.description,
+          description: description, // From IPFS metadata
           metadataURI: questData.metadataURI,
           questType: questData.questType,
           bountyAmount: questData.bountyAmount,
@@ -174,8 +213,8 @@ export const useQuestBoard = () => {
 
         const tx = await contract.createQuest(
           params.title,
-          params.description,
-          params.metadataURI,
+          params.description, // Keep for contract compatibility
+          params.metadataURI, // IPFS metadata URI
           params.questType,
           bountyAmountWei,
           params.bountyToken,
@@ -207,7 +246,7 @@ export const useQuestBoard = () => {
                 questId = Number(parsedLog.args.questId);
                 break;
               }
-            } catch (e) {
+            } catch {
               // Continue searching
             }
           }
@@ -233,6 +272,8 @@ export const useQuestBoard = () => {
 
         // Refresh quests list
         queryClient.invalidateQueries({ queryKey: ['activeQuests'] });
+        // Also refresh subgraph quests
+        queryClient.invalidateQueries({ queryKey: ['subgraph-quests'] });
 
         return { tx, questId };
       } catch (error: unknown) {

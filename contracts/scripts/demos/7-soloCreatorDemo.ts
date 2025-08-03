@@ -99,7 +99,7 @@ async function main() {
     const reviewDeadline = submissionDeadline + 2 * 24 * 60 * 60; // 2 days for review
 
     const questTx = await questBoard.connect(demoUser).createQuest(
-      'Solo Innovation Sprint: Build & Win',
+      'Canladea Innovation Sprint: Build & Win',
       'Create something amazing solo and win the full bounty! Perfect demo of creator-participant model where innovation meets rewards.',
       'https://ipfs.io/solo-innovation-brief',
       0, // Individual quest
@@ -258,7 +258,7 @@ async function main() {
         console.log(`📝 Submission: ${submission.title}`);
         console.log(`📈 Score: ${submission.score}/100`);
         console.log(
-          `🎖️  Status: ${submission.status === 5 ? 'WINNER!' : 'Submitted'}\n`
+          `🎖️  Status: ${submission.status === 5n ? 'WINNER!' : 'Submitted'}\n`
         );
       } catch (subError) {
         console.log(`⚠️  Could not fetch submission details: ${subError}\n`);

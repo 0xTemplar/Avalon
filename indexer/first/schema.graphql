@@ -31,9 +31,24 @@ type Quest @entity(immutable: false) {
   creator: User!
   title: String!
   description: String
+  metadataURI: String
+  questType: QuestType!
   bountyAmount: BigInt!
   bountyToken: Bytes!
   status: QuestStatus!
+  maxParticipants: BigInt!
+  maxCollaborators: BigInt!
+  submissionDeadline: BigInt!
+  reviewDeadline: BigInt!
+  requiresApproval: Boolean!
+  tags: [String!]!
+
+  # Quest Requirements
+  skillsRequired: [String!]!
+  minReputation: BigInt!
+  kycRequired: Boolean!
+  allowedFileTypes: [String!]!
+  maxFileSize: BigInt!
 
   # Timestamps
   createdAt: BigInt!
@@ -65,6 +80,12 @@ enum QuestStatus {
   ACTIVE
   COMPLETED
   CANCELLED
+}
+
+enum QuestType {
+  INDIVIDUAL
+  COLLABORATIVE
+  COMPETITION
 }
 
 type QuestParticipant @entity(immutable: false) {

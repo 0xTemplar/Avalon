@@ -613,7 +613,7 @@ export default function CreateQuestModal({
                     marginBottom: '8px',
                   }}
                 >
-                  Bounty Amount (ETH) *
+                  Bounty Amount (XTZ) *
                 </label>
                 <input
                   type="number"

@@ -54,8 +54,18 @@ interface IQuestBoard {
         uint256 indexed questId,
         address indexed creator,
         string title,
+        string description,
+        string metadataURI,
+        QuestType questType,
         uint256 bountyAmount,
-        address bountyToken
+        address bountyToken,
+        uint256 maxParticipants,
+        uint256 maxCollaborators,
+        uint256 submissionDeadline,
+        uint256 reviewDeadline,
+        bool requiresApproval,
+        string[] tags,
+        QuestRequirements requirements
     );
     
     event QuestUpdated(uint256 indexed questId, QuestStatus status);

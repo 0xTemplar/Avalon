@@ -138,9 +138,31 @@ export function handleQuestCreated(event: QuestCreatedEvent): void {
   quest.questId = event.params.questId;
   quest.creator = event.params.creator;
   quest.title = event.params.title;
-  quest.description = null;
+  quest.description = event.params.description;
+  quest.metadataURI = event.params.metadataURI;
+  // Convert questType enum from contract (0,1,2) to schema strings
+  if (event.params.questType == 0) {
+    quest.questType = 'INDIVIDUAL';
+  } else if (event.params.questType == 1) {
+    quest.questType = 'COLLABORATIVE';
+  } else if (event.params.questType == 2) {
+    quest.questType = 'COMPETITION';
+  } else {
+    quest.questType = 'INDIVIDUAL'; // default fallback
+  }
   quest.bountyAmount = event.params.bountyAmount;
   quest.bountyToken = event.params.bountyToken;
+  quest.maxParticipants = event.params.maxParticipants;
+  quest.maxCollaborators = event.params.maxCollaborators;
+  quest.submissionDeadline = event.params.submissionDeadline;
+  quest.reviewDeadline = event.params.reviewDeadline;
+  quest.requiresApproval = event.params.requiresApproval;
+  quest.tags = event.params.tags;
+  quest.skillsRequired = event.params.requirements.skillsRequired;
+  quest.minReputation = event.params.requirements.minReputation;
+  quest.kycRequired = event.params.requirements.kycRequired;
+  quest.allowedFileTypes = event.params.requirements.allowedFileTypes;
+  quest.maxFileSize = event.params.requirements.maxFileSize;
   quest.status = 'CREATED';
 
   // Timestamps
