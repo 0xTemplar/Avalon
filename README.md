@@ -92,6 +92,16 @@ Avalon consists of five interconnected smart contracts deployed on Etherlink:
 | **SubmissionManager** | Work and Review Process | • Structured submission workflows with file and metadata handling<br>• Multi-stage review processes<br>• Peer review and rating systems<br>• Version control for iterative improvements |
 | **RewardManager** | Compensation Distribution | • Automated reward distribution based on quest outcomes<br>• Support for milestone-based payments<br>• Platform fee management (2.5% default)<br>• Multi-token reward systems |
 
+#### Deployed Contract Addresses (Etherlink Testnet)
+
+| Contract | Address |
+|----------|---------|
+| **QuestBoard** | [`0xFAb315F98dC1D6aB93Ca1356D745165BE1cF0656`](https://testnet.explorer.etherlink.com/address/0xFAb315F98dC1D6aB93Ca1356D745165BE1cF0656) |
+| **UserProfile** | [`0x3391887EC4357F54Dc15C83526cc71852fCf8571`](https://testnet.explorer.etherlink.com/address/0x3391887EC4357F54Dc15C83526cc71852fCf8571) |
+| **CollaborationManager** | [`0x3c22db00207D4512C24d9c9952C113c722164c68`](https://testnet.explorer.etherlink.com/address/0x3c22db00207D4512C24d9c9952C113c722164c68) |
+| **SubmissionManager** | [`0x90EAF10a7119A5489928DC8e66d7f8989AAFe074`](https://testnet.explorer.etherlink.com/address/0x90EAF10a7119A5489928DC8e66d7f8989AAFe074) |
+| **RewardManager** | [`0xF8210D997c13E55a8aae8aC609496C6Fe3ED3656`](https://testnet.explorer.etherlink.com/address/0xF8210D997c13E55a8aae8aC609496C6Fe3ED3656) |
+
 ### Frontend Application
 
 Built with **Next.js** and **React**, the Avalon frontend provides:
