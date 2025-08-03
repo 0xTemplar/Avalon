@@ -98,7 +98,7 @@ export const useSubgraphUserProfile = (address?: string) => {
       formattedReputation: parseInt(query.data.reputation).toLocaleString(),
       formattedTotalRewards: `${(
         parseFloat(query.data.totalRewardsEarned) / 1e18
-      ).toFixed(2)} ETH`,
+      ).toFixed(2)} XTZ`,
       hasProfile: query.data.username !== null,
       displayName:
         query.data.username ||
