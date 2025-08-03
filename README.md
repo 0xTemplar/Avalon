@@ -173,6 +173,21 @@ npm run demo:multi-creator
 
 ## Use Cases
 
+### Real-World Example: Etherlink Liquidity Campaign
+
+**Scenario**: Design quest for Etherlink liquidity provision campaign on AppleFarm
+- **Quest Type**: Creative competition for promotional materials
+- **Bounty**: 100 XTZ distributed among top submissions
+- **Participants**: Designers from the Avalon community
+- **Deliverables**: Banner designs, social media graphics, and promotional materials
+- **Results**: High-quality designs delivered within 72 hours
+
+**Featured Submissions:**
+- [Etherlink Liquid Staking Banner Design](https://avalon.dev/quest/eth-liquidity-001/submission/creative-banner-v2) - Modern gradient design with animated elements
+- [AppleFarm Campaign Graphics Pack](https://avalon.dev/quest/eth-liquidity-001/submission/social-media-pack) - Complete social media asset collection
+
+This real campaign demonstrated Avalon's ability to rapidly mobilize creative talent for time-sensitive marketing needs while ensuring fair compensation and quality outcomes.
+
 ### Individual Freelancers
 **Scenario**: A graphic designer looking for consistent work
 - **Discovery**: Browse design quests matching their skills
