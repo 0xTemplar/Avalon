@@ -89,11 +89,18 @@ export default function Home() {
   // Use subgraph data or empty array if loading/error
   const questsData = subgraphQuests || [];
 
+  // IDs to hide from the quest list
+  const hiddenQuestIds = ['1', '4', '7', '3', '6', '8'];
+
   // Filter and sort quests
   let filteredQuests =
     selectedCategory === 'All'
-      ? questsData
-      : questsData.filter((quest) => quest.category === selectedCategory);
+      ? questsData.filter((quest) => !hiddenQuestIds.includes(quest.id))
+      : questsData.filter(
+          (quest) =>
+            quest.category === selectedCategory &&
+            !hiddenQuestIds.includes(quest.id)
+        );
 
   if (selectedDifficulty !== 'All') {
     filteredQuests = filteredQuests.filter(
@@ -118,7 +125,7 @@ export default function Home() {
       case 'reward':
         return parseFloat(b.reward) - parseFloat(a.reward);
       case 'deadline':
-        return parseInt(a.deadline) - parseInt(b.deadline);
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
       case 'participants':
         return b.participants - a.participants;
       default:

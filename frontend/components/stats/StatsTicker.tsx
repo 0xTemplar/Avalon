@@ -50,7 +50,7 @@ export default function StatsTicker({ isMobile }: StatsTickerProps) {
             >
               TOTAL REWARDS{' '}
               <span style={{ color: '#00ff88', marginLeft: '10px' }}>
-                892 ETH
+                892 XTZ
               </span>
             </span>
             <span
@@ -61,7 +61,7 @@ export default function StatsTicker({ isMobile }: StatsTickerProps) {
             >
               CREATORS{' '}
               <span style={{ color: '#00ff88', marginLeft: '10px' }}>
-                5,678
+                30
               </span>
             </span>
             <span
@@ -72,7 +72,7 @@ export default function StatsTicker({ isMobile }: StatsTickerProps) {
             >
               COMPLETED{' '}
               <span style={{ color: '#00ff88', marginLeft: '10px' }}>
-                3,456
+                20
               </span>
             </span>
           </div>

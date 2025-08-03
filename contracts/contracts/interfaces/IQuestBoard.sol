@@ -22,6 +22,7 @@ interface IQuestBoard {
 
     struct Quest {
         uint256 id;
+        string externalId; // Frontend-controlled unique identifier
         address creator;
         string title;
         string description;
@@ -52,6 +53,7 @@ interface IQuestBoard {
     // Events
     event QuestCreated(
         uint256 indexed questId,
+        string indexed externalId,
         address indexed creator,
         string title,
         string description,
@@ -76,6 +78,7 @@ interface IQuestBoard {
 
     // Quest Management Functions
     function createQuest(
+        string calldata externalId,
         string calldata title,
         string calldata description,
         string calldata metadataURI,
@@ -118,4 +121,9 @@ interface IQuestBoard {
     function getQuestsByCreator(address creator) external view returns (uint256[] memory);
     function getQuestsByTag(string calldata tag) external view returns (uint256[] memory);
     function getTotalQuests() external view returns (uint256);
+    
+    // External ID lookup functions
+    function getQuestIdByExternalId(string calldata externalId) external view returns (uint256);
+    function getExternalIdByQuestId(uint256 questId) external view returns (string memory);
+    function getQuestByExternalId(string calldata externalId) external view returns (Quest memory);
 } 

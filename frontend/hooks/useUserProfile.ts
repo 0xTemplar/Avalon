@@ -39,7 +39,7 @@ export const useUserProfile = (userAddress?: string) => {
     if (!provider) return null;
     return new Contract(
       CONTRACT_ADDRESSES.UserProfile,
-      UserProfileABI,
+      UserProfileABI.abi,
       signer || provider
     );
   }, [provider, signer]);

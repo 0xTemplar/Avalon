@@ -1,20 +1,20 @@
 {
   "etherlink-testnet": {
     "QuestBoard": {
-      "address": "0x35b3fB8fb4D3614bd70Caa5A87B4F3dea2B1aCb3",
-      "startBlock": 20867286
+      "address": "0xFAb315F98dC1D6aB93Ca1356D745165BE1cF0656",
+      "startBlock": 20895703
     },
     "SubmissionManager": {
-      "address": "0x09f9D548467709c7DD597A7fA9dAEac1ff594071"
+      "address": "0x90EAF10a7119A5489928DC8e66d7f8989AAFe074"
     },
     "RewardManager": {
-      "address": "0xE71949E7C672dFd4Daf0e14b05b008EA91f9A0DF"
+      "address": "0xF8210D997c13E55a8aae8aC609496C6Fe3ED3656"
     },
     "UserProfile": {
-      "address": "0x6ACF9CF21e950A157F4153700F33C26e7602DE8F"
+      "address": "0x3391887EC4357F54Dc15C83526cc71852fCf8571"
     },
     "CollaborationManager": {
-      "address": "0xA1C6680AfF4642e2B4119F9F3e3a5514d231BD72"
+      "address": "0x3c22db00207D4512C24d9c9952C113c722164c68"
     }
   }
 }
