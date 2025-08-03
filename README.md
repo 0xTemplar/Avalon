@@ -13,10 +13,6 @@ Avalon is a blockchain-powered platform that revolutionizes how creative profess
   - [Smart Contract Layer](#smart-contract-layer)
   - [Frontend Application](#frontend-application)
   - [Indexing Layer](#indexing-layer)
-- [Key Features](#key-features)
-  - [For Quest Creators (Clients)](#for-quest-creators-clients)
-  - [For Creators](#for-creators)
-  - [For Teams](#for-teams)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Quick Start](#quick-start)
@@ -107,50 +103,6 @@ A custom **subgraph** provides efficient data querying:
 - Performance optimization for large datasets
 - GraphQL API for frontend integration
 
-## Key Features
-
-### For Quest Creators (Clients)
-
-**🎯 Flexible Quest Types**
-- **Individual Quests**: Traditional freelance-style projects
-- **Collaborative Quests**: Multi-person team projects
-- **Competitions**: Creative contests with multiple submissions
-
-**⚙️ Advanced Configuration**
-- Custom skill requirements and minimum reputation thresholds
-- File type and size restrictions
-- Approval workflows for participant selection
-- Deadline management with automatic enforcement
-
-**📊 Comprehensive Analytics**
-Track quest performance, participant engagement, and submission quality through detailed on-chain analytics.
-
-### For Creators
-
-**🔍 Smart Discovery**
-Find quests that match your skills through AI-powered recommendations and advanced filtering options.
-
-**👥 Team Building**
-Form teams with complementary skills, manage collaboration agreements, and automatically split rewards.
-
-**📈 Reputation Building**
-Build verifiable, portable reputation across all your creative work that follows you across platforms.
-
-**💰 Fair Compensation**
-Get paid immediately upon quest completion with transparent, automated smart contract execution.
-
-### For Teams
-
-**🤝 Collaboration Tools**
-- Real-time team formation and invitation systems
-- Role-based permissions and responsibility management
-- Integrated communication and file sharing
-- Automated reward distribution based on contribution
-
-**📋 Project Management**
-- Milestone tracking and progress monitoring
-- Version control for collaborative submissions
-- Conflict resolution mechanisms
 
 ## Getting Started
 
@@ -237,27 +189,6 @@ npm run demo:multi-creator
 - **Participation**: Submit proposals and compete for projects
 - **Execution**: Complete work with transparent milestone tracking
 - **Growth**: Build on-chain reputation for future opportunities
-
-### Creative Teams
-**Scenario**: A video production team tackling complex projects
-- **Formation**: Find complementary team members through the platform
-- **Collaboration**: Manage multi-role projects with automated agreements
-- **Compensation**: Automatic reward splitting based on predefined contributions
-- **Portfolio**: Showcase successful collaborative projects
-
-### Creative Agencies
-**Scenario**: An agency distributing work to their network
-- **Quest Creation**: Post complex, multi-phase creative projects
-- **Team Management**: Organize and oversee distributed creative teams
-- **Quality Control**: Implement structured review and feedback processes
-- **Payment Automation**: Streamline compensation for all participants
-
-### Creative Competitions
-**Scenario**: A brand running a logo design contest
-- **Setup**: Create competition-style quests with multiple winners
-- **Participation**: Enable broad community participation
-- **Judging**: Implement transparent, community-driven evaluation
-- **Recognition**: Provide on-chain recognition and rewards
 
 ## Roadmap
 
