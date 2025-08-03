@@ -166,15 +166,7 @@ Explore the platform functionality through our comprehensive demo scripts:
 ```bash
 cd contracts
 
-# Basic user flows
-npm run demo:user-profile
-npm run demo:quest-management
-npm run demo:collaboration
-npm run demo:submissions
-npm run demo:rewards
-
 # Complete end-to-end scenarios
-npm run demo:end-to-end
 npm run demo:solo-creator
 npm run demo:multi-creator
 ```
