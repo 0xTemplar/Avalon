@@ -107,7 +107,7 @@ Avalon consists of five interconnected smart contracts deployed on Etherlink:
 Built with **Next.js** and **React**, the Avalon frontend provides:
 
 - **Intuitive Quest Discovery**: Advanced filtering and search capabilities
-- **Seamless Wallet Integration**: Support for MetaMask and WalletConnect
+- **Seamless Wallet Integration**: Support for Social Login with Privy
 - **Real-time Updates**: Live quest status and collaboration updates
 - **Mobile-Optimized Design**: Responsive interface for creators on the go
 - **IPFS Integration**: Decentralized file storage for submissions and metadata
