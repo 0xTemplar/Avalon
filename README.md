@@ -114,12 +114,14 @@ Built with **Next.js** and **React**, the Avalon frontend provides:
 
 ### Indexing Layer
 
-A custom **subgraph** provides efficient data querying:
+A custom **subgraph** provides efficient data querying with real-time event streaming:
 
-- Real-time event indexing from all smart contracts
-- Complex query support for filtering and sorting
-- Performance optimization for large datasets
-- GraphQL API for frontend integration
+- **Real-time Event Indexing**: Captures all smart contract events as they occur
+- **Cloud Firestore Integration**: Streams indexed events to Google Cloud Firestore for enhanced performance and reliability
+- **Hybrid Data Architecture**: Combines GraphQL subgraph queries with Firestore's real-time capabilities
+- **Complex Query Support**: Advanced filtering and sorting across large datasets
+- **Performance Optimization**: Distributed data storage for faster frontend responses
+- **Multi-Source Data**: Seamlessly integrates on-chain events with off-chain metadata
 
 
 ## Getting Started
